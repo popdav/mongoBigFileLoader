@@ -48,7 +48,7 @@ class Table extends Component {
           })}</tr>
           {this.state.data.map((e) => {
             return (
-              <ObjElements obj={e} arr={objPropsArr} key={e._id}/>
+              <ObjElements obj={e} arr={objPropsArr} key={Math.random().toString(36).substr(2, 9)}/>
             )
           })}
 
