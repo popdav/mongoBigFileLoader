@@ -1,18 +1,33 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import Files from './Files';
+import Table from './Table';
+
 
 class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      filesShow: true,
+      tableShow: false
+    }
+    App.showChange = App.showChange.bind(this);
+  }
+
+  static showChange() {
+
+    this.setState({
+      filesShow: !this.state.filesShow,
+      tableShow: !this.state.tableShow
+    })
+  }
+
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+      <div>
+        <Files showing={this.state.filesShow} />
+        <Table showing={this.state.tableShow} />
       </div>
     );
   }
