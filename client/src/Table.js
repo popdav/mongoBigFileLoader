@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import './App.css';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import App from './App';
+import Pagination from "react-js-pagination";
 import ObjElements from './ObjElements';
 
 
@@ -11,8 +12,11 @@ class Table extends Component {
     this.state = {
       showing: props.showing,
       data: [],
+      activePage: 1,
+      perPage: 5,
     }
     Table.receiveFiles = Table.receiveFiles.bind(this);
+    this.handlePageChange = this.handlePageChange.bind(this);
   }
 
   handleDivClick(e) {
@@ -27,6 +31,10 @@ class Table extends Component {
     console.log(this.state);
   }
 
+  handlePageChange = (pageNumber) => {
+    this.setState({activePage: pageNumber});
+  }
+
   render() {
     let styleT = {display: "block"};
     if(!this.props.showing)
@@ -37,6 +45,16 @@ class Table extends Component {
       objPropsArr.push(x);
     }
 
+    const arr = this.state.data;
+    const currPage = this.state.activePage;
+    const perPage = this.state.perPage;
+
+    const indeOfLast = currPage * perPage;
+    const indexOdfFirst = indeOfLast - perPage;
+    const subArr = arr.slice(indexOdfFirst, indeOfLast);
+
+
+
     return (
       <div style={styleT}>
         <button className="btn btn-primary" onClick={this.handleDivClick}>Back</button>
@@ -46,7 +64,7 @@ class Table extends Component {
               <th key={i}>{e}</th>
             )
           })}</tr>
-          {this.state.data.map((e) => {
+          {subArr.map((e) => {
             return (
               <ObjElements obj={e} arr={objPropsArr} key={Math.random().toString(36).substr(2, 9)}/>
             )
@@ -54,6 +72,15 @@ class Table extends Component {
 
           </tbody>
         </table>
+
+        <Pagination
+              activePage={this.state.activePage}
+              itemsCountPerPage={this.state.perPage}
+              totalItemsCount={this.state.data.length}
+              onChange={this.handlePageChange}
+
+            />
+
       </div>
     );
   }
