@@ -17,6 +17,7 @@ class Table extends Component {
     }
     Table.receiveFiles = Table.receiveFiles.bind(this);
     this.handlePageChange = this.handlePageChange.bind(this);
+    this.handlePerPageChange = this.handlePerPageChange.bind(this);
   }
 
   handleDivClick(e) {
@@ -33,6 +34,13 @@ class Table extends Component {
 
   handlePageChange = (pageNumber) => {
     this.setState({activePage: pageNumber});
+  }
+
+  handlePerPageChange = (event) => {
+    this.setState({
+      activePage: 1,
+      perPage: event.target.value
+    });
   }
 
   render() {
@@ -58,6 +66,16 @@ class Table extends Component {
     return (
       <div style={styleT}>
         <button className="btn btn-primary" onClick={this.handleDivClick}>Back</button>
+        <br/>
+        <label>
+            Select number of rows: <select value={this.state.perPage} onChange={this.handlePerPageChange}>
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+              <option value={25}>25</option>
+            </select>
+          </label>
         <table className="table table-bordered table-style table-hover">
           <tbody><tr>{objPropsArr.map((e, i) => {
             return (
