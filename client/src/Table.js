@@ -65,7 +65,7 @@ class Table extends Component {
 
     return (
       <div className="Table" style={styleT}>
-        <button className="btn btn-primary" onClick={this.handleDivClick}>Back</button>
+        <button className="btn btn-primary btn-lg" onClick={this.handleDivClick}>Back</button>
         <br/>
         <label>
             Select number of rows: <select value={this.state.perPage} onChange={this.handlePerPageChange}>

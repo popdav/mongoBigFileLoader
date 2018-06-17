@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import './App.css';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import Cell from './Cell';
+import Pagination from "react-js-pagination";
 
 
 class Files extends Component {
@@ -10,8 +11,10 @@ class Files extends Component {
     this.state = {
       files: [],
       showing: props.showing,
+      activePage: 1,
+      perPage: 20,
     }
-
+    this.handlePageChange = this.handlePageChange.bind(this);
   }
 
   componentDidMount() {
@@ -23,6 +26,9 @@ class Files extends Component {
       .catch(err => console.log(err));
   }
 
+  handlePageChange = (pageNumber) => {
+    this.setState({activePage: pageNumber});
+  }
 
   callFiles = async () => {
     const response = await fetch('/files');
@@ -38,8 +44,8 @@ class Files extends Component {
       styleT = {display: "none"};
     const f = this.state.files;
     return (
-      <div className="App">
-        <table className="table  table-style table-hover" style={styleT}>
+      <div style={styleT}>
+        <table className="table  table-style table-hover FilesTable" style={styleT}>
           <tbody><tr><th>Files:</th></tr></tbody>
           {
             f.map((elm) => {
@@ -49,6 +55,17 @@ class Files extends Component {
             })
           }
         </table>
+
+        <div className="FilesPaginaion">
+        <Pagination
+              activePage={this.state.activePage}
+              itemsCountPerPage={this.state.perPage}
+              totalItemsCount={this.state.files.length}
+              onChange={this.handlePageChange}
+
+        />
+        </div>
+
       </div>
     );
   }
