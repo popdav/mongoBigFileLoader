@@ -15,10 +15,20 @@ class ObjElements extends Component {
 
   checkForObject(obj) {
     let newObj = obj;
-    if(typeof(newObj) === 'object')
-      newObj = JSON.stringify(newObj);
+    let s = '';
+    if(typeof(newObj) === 'object'){
 
-    return newObj;
+      for(let x in newObj){
+          if(typeof(newObj[x]) === 'object')
+            s += this.checkForObject(newObj[x]);
+          else
+            s += x + ': ' + newObj[x] + '\n';
+      }
+    } else {
+      s = newObj + '\n';
+    }
+
+    return s;
   }
 
   render() {

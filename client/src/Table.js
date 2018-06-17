@@ -64,7 +64,7 @@ class Table extends Component {
 
 
     return (
-      <div style={styleT}>
+      <div className="Table" style={styleT}>
         <button className="btn btn-primary" onClick={this.handleDivClick}>Back</button>
         <br/>
         <label>
@@ -90,15 +90,15 @@ class Table extends Component {
 
           </tbody>
         </table>
+        <div className="Pagination">
+          <Pagination
+                activePage={this.state.activePage}
+                itemsCountPerPage={this.state.perPage}
+                totalItemsCount={this.state.data.length}
+                onChange={this.handlePageChange}
 
-        <Pagination
-              activePage={this.state.activePage}
-              itemsCountPerPage={this.state.perPage}
-              totalItemsCount={this.state.data.length}
-              onChange={this.handlePageChange}
-
-            />
-
+          />
+        </div>
       </div>
     );
   }
