@@ -14,6 +14,7 @@ class Cell extends Component {
       showing: props.showing,
     }
     this.onCellClick = this.onCellClick.bind(this);
+    this.delClick = this.delClick.bind(this);
   }
 
   onCellClick(e) {
@@ -30,6 +31,20 @@ class Cell extends Component {
     App.showChange();
   }
 
+  delClick() {
+
+    axios.post('/delete', this.state.element)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+      
+    this.props.func();
+
+  }
+
 
 
 
@@ -40,8 +55,9 @@ class Cell extends Component {
 
     return (
       <tbody>
-        <tr onClick={this.onCellClick} style={styleT}>
-          <td>{this.state.element.filename}</td>
+        <tr style={styleT}>
+          <td onClick={this.onCellClick}>{this.state.element.path}</td>
+          <td> <input type="submit" value="Delete" className={'btn btnSubmit'} onClick={this.delClick}/></td>
         </tr>
       </tbody>
     );

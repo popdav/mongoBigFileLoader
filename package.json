@@ -14,7 +14,7 @@
     "gridfs": "^1.0.0",
     "method-override": "~2.1.2",
     "mongodb": "",
-    "mongoose": "~4.1.0",
+    "mongoose": "^4.1.12",
     "morgan": "~1.2.2"
   },
   "devDependencies": {

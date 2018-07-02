@@ -10,11 +10,14 @@ class Files extends Component {
     super(props);
     this.state = {
       files: [],
+      addFile: '',
       showing: props.showing,
       activePage: 1,
       perPage: 20,
     }
     this.handlePageChange = this.handlePageChange.bind(this);
+    this.handelAddFormInput = this.handelAddFormInput.bind(this);
+    this.refrFiles = this.refrFiles.bind(this);
   }
 
   componentDidMount() {
@@ -24,6 +27,16 @@ class Files extends Component {
         this.setState({ files: res});
       })
       .catch(err => console.log(err));
+  }
+
+  handelAddFormInput = (event) => {
+    const target = event.target;
+    const value = target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value,
+    });
   }
 
   handlePageChange = (pageNumber) => {
@@ -40,27 +53,35 @@ class Files extends Component {
 
   addToDb = () => {
     let newBody = {
-      name: this.state.addIme,
-      last_name: this.state.addPrezime,
-      index: this.state.addIndeks
+      path: this.state.addFile,
     }
 
     console.log(newBody);
 
     axios.post('/add', newBody)
-    .then(function (response) {
+    .then((response) => {
       console.log(response);
     })
-    .catch(function (error) {
+    .catch((error) => {
       console.log(error);
     });
+  }
+
+  refrFiles = () => {
+    axios.get("/files")
+    .then((res) => {
+      
+      this.setState({ files: res.data});
+    })
+    .catch((err) => {
+      console.log(err);
+    })
   }
 
   render() {
     let styleT = {display: "block"};
     if(!this.props.showing)
       styleT = {display: "none"};
-    const f = this.state.files;
 
     let addForm = React.createRef();
     function handleAddClick () {
@@ -68,20 +89,20 @@ class Files extends Component {
     }
 
     function handleOutForm () {
-      addForm.current.style.display = "none";
+      // addForm.current.style.display = "none";
     }
 
 
     return (
       <div style={styleT} className="FilesTable">
 
-        <button onClick={handleAddClick}>Add file</button>
+        <button onClick={handleAddClick} className={'btn btnSubmit'}>Add file</button>
 
         <div className={'modal'} ref={addForm} onClick={handleOutForm}>
             <form className={'modal-content'}>
               <div className={"form-group"}>
                 <label>
-                  File path: <input type="text" className={"form-control"} name="addIme" onChange={this.handelAddFormInput}/>
+                  File path: <input type="text" className={"form-control"} name="addFile" onChange={this.handelAddFormInput}/>
                 </label>
               </div>
               <input type="submit" value="Submit" className={'btn btn-danger btnSubmit'} onClick={this.addToDb}/>
@@ -90,12 +111,12 @@ class Files extends Component {
 
 
 
-        <table className="table  table-style table-hover FilesTable" style={styleT}>
+        <table className=" table-hover " style={styleT}>
           <tbody><tr><th>Files:</th></tr></tbody>
           {
-            f.map((elm) => {
+            this.state.files.map((elm) => {
               return (
-                <Cell key={elm._id} elm={elm} showing={this.props.showing}/>
+                <Cell key={elm._id} elm={elm} showing={this.props.showing} func={this.refrFiles}/>
               );
             })
           }
