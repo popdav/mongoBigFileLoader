@@ -12,21 +12,35 @@ class Cell extends Component {
     this.state = {
       element: props.elm,
       showing: props.showing,
+      arrayOfObjProps: [],
     }
     this.onCellClick = this.onCellClick.bind(this);
     this.delClick = this.delClick.bind(this);
   }
 
-  onCellClick(e) {
-    e.preventDefault();
-    const name = this.state.element.filename;
-    axios.post('/fileData', {name: name})
+  componentDidMount() {
+
+    axios.post('/fileProps', {path: this.state.element.path})
       .then((res) => {
-        Table.receiveFiles(res.data);
+        // console.log(res.data);
+        this.setState({arrayOfObjProps: res.data});
       })
       .catch((err) => {
         console.log(err);
       })
+    
+  }
+
+  onCellClick(e) {
+    e.preventDefault();
+    const fBody = {
+      path: this.state.element.path,
+      arrayOfObjProps: this.state.arrayOfObjProps.split(" "),
+      pos: this.state.arrayOfObjProps.length
+    }
+
+    Table.receiveFiles(fBody);
+    
 
     App.showChange();
   }

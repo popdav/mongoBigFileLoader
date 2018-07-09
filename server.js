@@ -56,4 +56,81 @@ app.post("/delete", (req, res) => {
   });
 })
 
+app.post("/fileProps", (req, res) => {
+  fs.open(req.body.path, 'r', (err, fd) => {
+    if(err) return console.log(err);
+
+    let buffr = new Buffer(128);
+
+    fs.read(fd, buffr, 0, buffr.length, 0, (err, bytes) => {
+      if(err) throw err;
+      let line = "";
+      if(bytes > 0) {
+        line = buffr.slice(0, bytes).toString();
+        let firstNewLine = line.indexOf("\n");
+        line = line.slice(0, firstNewLine).replace(/,/g, " ");
+      }
+
+      fs.close(fd, (err) => {
+        if(err) throw err;
+      });
+
+      res.send(line);
+
+    })
+
+  })
+})
+
+app.post("/fileLines", (req, res) => {
+  let count = 0;
+  fs.createReadStream(req.body.path)
+  .on('data', (chunk) => {
+    for (let i = 0; i < chunk.length; i++) {
+      if(chunk[i] == 10) count++;
+      
+    }
+  })
+  .on('end', () => {
+    res.send(count + "");
+  })
+})
+
+app.post("/fileData", (req, res) => {
+  const filePath = req.body.path;
+
+  let fd = fs.openSync(filePath, 'r');
+  let lines = [];
+  let posInFile = req.body.positionInFile;
+  for(let i=0; i < req.body.activePage * req.body.perPage; i++) {
+    
+    let buffr = new Buffer(128);
+    let readBytes = fs.readSync(fd, buffr, 0, buffr.length, posInFile);
+    
+    if(readBytes > 0) {
+      let line = buffr.slice(0, readBytes).toString();
+      let firstNewLine = line.indexOf("\n");
+      line = line.slice(0, firstNewLine).replace(/,/g, " ");
+      
+      posInFile += line.length + 1;
+      
+      line = line.split(" ");
+      let obj = {};
+      for(let j=0; j<req.body.arrayOfObjProps.length; j++) {
+        obj[req.body.arrayOfObjProps[j]] = line[j];
+        
+      }
+      
+      if(i >= (req.body.activePage-1)*req.body.perPage && i < req.body.activePage * req.body.perPage)
+        lines.push(obj);
+
+    }
+  }
+  const objectToSend = {
+    pos: posInFile,
+    data: lines
+  };
+  res.send(objectToSend);
+})
+
 app.listen(port, () => console.log(`Listening on port ${port}`));
