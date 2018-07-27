@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
-import App from './App';
 import Pagination from "react-js-pagination";
 import ObjElements from './ObjElements';
 import axios from 'axios';
@@ -16,16 +15,18 @@ class Table extends Component {
       activePage: 1,
       perPage: 5,
       positionInFile: 0,
-      fileLines: 0
+      fileLines: 0,
+      showFunc: props.showFunc,
     }
     Table.receiveFiles = Table.receiveFiles.bind(this);
     this.handlePageChange = this.handlePageChange.bind(this);
     this.handlePerPageChange = this.handlePerPageChange.bind(this);
+    this.handleDivClick = this.handleDivClick.bind(this);
   }
 
   handleDivClick(e) {
     e.preventDefault();
-    App.showChange();
+    this.state.showFunc();
   }
 
   static receiveFiles(d) {

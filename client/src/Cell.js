@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import './App.css';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
-import App from './App';
 import Table from './Table';
 
 
@@ -13,6 +12,7 @@ class Cell extends Component {
       element: props.elm,
       showing: props.showing,
       arrayOfObjProps: [],
+      showFunc: props.showFunc,
     }
     this.onCellClick = this.onCellClick.bind(this);
     this.delClick = this.delClick.bind(this);
@@ -39,10 +39,11 @@ class Cell extends Component {
       pos: this.state.arrayOfObjProps.length
     }
 
+    
     Table.receiveFiles(fBody);
     
 
-    App.showChange();
+    this.state.showFunc();
   }
 
   delClick() {

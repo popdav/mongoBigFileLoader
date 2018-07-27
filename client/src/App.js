@@ -10,12 +10,14 @@ class App extends Component {
     super();
     this.state = {
       filesShow: true,
-      tableShow: false
+      tableShow: false,
+      tableData: {}
     }
-    App.showChange = App.showChange.bind(this);
+    this.showChangeProp = this.showChangeProp.bind(this);
   }
 
-  static showChange() {
+
+  showChangeProp() {
 
     this.setState({
       filesShow: !this.state.filesShow,
@@ -24,10 +26,11 @@ class App extends Component {
   }
 
   render() {
+    
     return (
       <div>
-        <Files showing={this.state.filesShow} />
-        <Table showing={this.state.tableShow} />
+        <Files showing={this.state.filesShow} showFunc={this.showChangeProp} />
+        <Table showing={this.state.tableShow} showFunc={this.showChangeProp} />
       </div>
     );
   }

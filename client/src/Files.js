@@ -14,6 +14,7 @@ class Files extends Component {
       showing: props.showing,
       activePage: 1,
       perPage: 20,
+      showFunc: props.showFunc,
     }
     this.handlePageChange = this.handlePageChange.bind(this);
     this.handelAddFormInput = this.handelAddFormInput.bind(this);
@@ -116,7 +117,7 @@ class Files extends Component {
           {
             this.state.files.map((elm) => {
               return (
-                <Cell key={elm._id} elm={elm} showing={this.props.showing} func={this.refrFiles}/>
+                <Cell key={elm._id} elm={elm} showing={this.props.showing} func={this.refrFiles} showFunc={this.state.showFunc}/>
               );
             })
           }
