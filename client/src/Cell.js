@@ -11,7 +11,7 @@ class Cell extends Component {
     this.state = {
       element: props.elm,
       showing: props.showing,
-      arrayOfObjProps: [],
+      arrayOfObjProps: "",
       showFunc: props.showFunc,
     }
     this.onCellClick = this.onCellClick.bind(this);
@@ -38,12 +38,23 @@ class Cell extends Component {
       arrayOfObjProps: this.state.arrayOfObjProps.split(" "),
       pos: this.state.arrayOfObjProps.length
     }
-
+    axios.post('/fileExist', fBody)
+    .then((res) => {
+      if(res.data === 1) {
+        Table.receiveFiles(fBody);
+        this.state.showFunc();
+      } else {
+        alert("File does not exist!");
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    })
     
-    Table.receiveFiles(fBody);
     
 
-    this.state.showFunc();
+
+
   }
 
   delClick() {

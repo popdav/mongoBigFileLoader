@@ -39,6 +39,15 @@ app.get("/files", (req, res) => {
   })
 });
 
+app.post("/fileExist", (req, res) => {
+  
+    if (fs.existsSync(req.body.path)) {
+        res.send("1");
+    }
+
+    res.send("0");
+})
+
 app.post("/add", (req, res) => {
   var myData = new File(req.body);
   myData.save()
