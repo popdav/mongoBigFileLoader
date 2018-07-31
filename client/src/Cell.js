@@ -50,11 +50,6 @@ class Cell extends Component {
     .catch((err) => {
       console.log(err);
     })
-    
-    
-
-
-
   }
 
   delClick() {
