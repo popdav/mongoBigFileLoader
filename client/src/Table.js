@@ -95,13 +95,14 @@ class Table extends Component {
       arrayOfObjProps: this.state.arrayOfObjProps,
       positionInFile: this.state.positionInFile,
       perPage: newNum,
-      activePage: this.state.activePage
+      activePage: 1
     }
     axios.post('/fileData', newFileBody)
       .then((res) => {
         this.setState({
           data: res.data.data,
-          perPage: newNum
+          perPage: newNum,
+          activePage: 1
         });
       })
       .catch((err) => {
