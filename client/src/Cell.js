@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 import './App.css';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
-import Table from './Table';
+import { connect } from 'react-redux';
+import { cellToTableTransfer } from './actions/cellTableActions';
+import PropTypes from 'prop-types';
 
 
 class Cell extends Component {
@@ -41,7 +43,8 @@ class Cell extends Component {
     axios.post('/fileExist', fBody)
     .then((res) => {
       if(res.data === 1) {
-        Table.receiveFiles(fBody);
+        //ubaciti redux
+        this.props.cellToTableTransfer(fBody);
         this.state.showFunc();
       } else {
         alert("File does not exist!");
@@ -85,4 +88,8 @@ class Cell extends Component {
   }
 }
 
-export default Cell;
+Cell.propTypes = {
+  cellToTableTransfer: PropTypes.func.isRequired
+}
+
+export default connect(null, { cellToTableTransfer })(Cell);

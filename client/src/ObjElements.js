@@ -47,14 +47,5 @@ class ObjElements extends Component {
     );
   }
 }
-// _renderObject(){
-//     return Object.keys(ObjectTest).map(obj, i) => {
-//         return (
-//             <div>
-//                 id is: {ObjectTest[obj].id} ;
-//                 name is: {ObjectTest[obj].name}
-//             </div>
-//         )
-//     })
-// }
+
 export default ObjElements;

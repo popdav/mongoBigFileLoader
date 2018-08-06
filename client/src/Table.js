@@ -5,6 +5,9 @@ import Pagination from "react-js-pagination";
 import ObjElements from './ObjElements';
 import axios from 'axios';
 
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+
 
 class Table extends Component {
   constructor(props) {
@@ -18,7 +21,7 @@ class Table extends Component {
       fileLines: 0,
       showFunc: props.showFunc,
     }
-    Table.receiveFiles = Table.receiveFiles.bind(this);
+    // Table.receiveFiles = Table.receiveFiles.bind(this);
     this.handlePageChange = this.handlePageChange.bind(this);
     this.handlePerPageChange = this.handlePerPageChange.bind(this);
     this.handleDivClick = this.handleDivClick.bind(this);
@@ -29,30 +32,34 @@ class Table extends Component {
     this.state.showFunc();
   }
 
-  static receiveFiles(d) {
-    this.setState({
-      path: d.path,
-      arrayOfObjProps: d.arrayOfObjProps,
-      positionInFile: d.pos + 1
-    });
+  componentWillReceiveProps(nextProps)  {
+    if(nextProps.data.data) {
+      this.setState({
+        path: nextProps.data.data.path,
+        arrayOfObjProps: nextProps.data.data.arrayOfObjProps,
+        positionInFile: nextProps.data.data.pos + 1
+      });
 
-    axios.post('/fileLines', {path: d.path})
-    .then((res) => {
-      this.setState({fileLines: res.data-1});
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-
-    let newFileBody = {
-      path: d.path,
-      arrayOfObjProps: d.arrayOfObjProps,
-      positionInFile: d.pos+1,
-      perPage: this.state.perPage,
-      activePage: this.state.activePage
-    }
-    axios.post('/fileData', newFileBody)
+      axios.post('/fileLines', {path: nextProps.data.data.path})
       .then((res) => {
+        
+        this.setState({fileLines: res.data-1});
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+
+      let newFileBody = {
+        path: nextProps.data.data.path,
+        arrayOfObjProps: nextProps.data.data.arrayOfObjProps,
+        positionInFile: nextProps.data.data.pos+1,
+        perPage: this.state.perPage,
+        activePage: this.state.activePage
+      }
+
+      axios.post('/fileData', newFileBody)
+      .then((res) => {
+        
         this.setState({
           data: res.data.data,
         });
@@ -61,7 +68,7 @@ class Table extends Component {
         console.log(err);
       })
 
-
+    }
 
   }
 
@@ -162,5 +169,14 @@ class Table extends Component {
   }
 }
 
+Table.propTypes = {
+  data: PropTypes.object.isRequired
+}
 
-export default Table;
+const mapStateToProps = state => ({
+  data: state.data
+})
+
+ export default connect(mapStateToProps, {})(Table);
+
+
