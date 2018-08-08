@@ -123,6 +123,7 @@ app.post("/fileData", (req, res) => {
     if(readBytes > 0) {
       let line = buffr.slice(0, readBytes).toString();
       let firstNewLine = line.indexOf("\n");
+      delimiter = CSV.detect(line);
       line = line.slice(0, firstNewLine).replace(new RegExp(delimiter, "g"), " ");
       
       posInFile += line.length + 1;
