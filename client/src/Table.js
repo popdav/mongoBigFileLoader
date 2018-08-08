@@ -21,7 +21,7 @@ class Table extends Component {
       fileLines: 0,
       showFunc: props.showFunc,
     }
-    // Table.receiveFiles = Table.receiveFiles.bind(this);
+    
     this.handlePageChange = this.handlePageChange.bind(this);
     this.handlePerPageChange = this.handlePerPageChange.bind(this);
     this.handleDivClick = this.handleDivClick.bind(this);

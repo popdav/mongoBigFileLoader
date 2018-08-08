@@ -9,9 +9,10 @@ const ObjectId = Mongo.ObjectID;
 const fs = require('fs');
 const Grid  = require('gridfs');
 const app = express();
+const CSV = require('csv-string');
 const port = process.env.PORT || 5000;
 
-
+let delimiter = ',';
 
 app.use(express.static(__dirname + '/public'));
 app.use('/bower_components', express.static(__dirname + '/bower_components'));
@@ -43,7 +44,8 @@ app.post("/fileExist", (req, res) => {
   
     if (fs.existsSync(req.body.path)) {
         res.send("1");
-    }
+        return;
+    } 
 
     res.send("0");
 })
@@ -77,7 +79,9 @@ app.post("/fileProps", (req, res) => {
       if(bytes > 0) {
         line = buffr.slice(0, bytes).toString();
         let firstNewLine = line.indexOf("\n");
-        line = line.slice(0, firstNewLine).replace(/,/g, " ");
+        line = line.slice(0, firstNewLine);
+        delimiter = CSV.detect(line);
+        line = line.replace(new RegExp(delimiter, "g"), " ");
       }
 
       fs.close(fd, (err) => {
@@ -119,7 +123,7 @@ app.post("/fileData", (req, res) => {
     if(readBytes > 0) {
       let line = buffr.slice(0, readBytes).toString();
       let firstNewLine = line.indexOf("\n");
-      line = line.slice(0, firstNewLine).replace(/,/g, " ");
+      line = line.slice(0, firstNewLine).replace(new RegExp(delimiter, "g"), " ");
       
       posInFile += line.length + 1;
       
