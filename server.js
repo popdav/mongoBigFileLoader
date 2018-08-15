@@ -120,17 +120,21 @@ app.post("/fileData", (req, res) => {
     let buffr = new Buffer(128);
     let readBytes = fs.readSync(fd, buffr, 0, buffr.length, posInFile);
     
-    if(readBytes > 0) {
+    if(readBytes > 0) {      
       let line = buffr.slice(0, readBytes).toString();
       let firstNewLine = line.indexOf("\n");
       delimiter = CSV.detect(line);
-      line = line.slice(0, firstNewLine).replace(new RegExp(delimiter, "g"), " ");
+      line = line.slice(0, firstNewLine)//.replace(new RegExp(delimiter, "g"), " ");
       
       posInFile += line.length + 1;
       
-      line = line.split(" ");
+      line = line.split(new RegExp(delimiter, "g"));
+      
       let obj = {};
       for(let j=0; j<req.body.arrayOfObjProps.length; j++) {
+        if(line[j].charAt(0) === '"' && line[j].charAt(line[j].length-1) === '"'){
+          line[j] = line[j].substring(1, line[j].length-1)
+        }
         obj[req.body.arrayOfObjProps[j]] = line[j];
         
       }
