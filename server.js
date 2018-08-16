@@ -159,6 +159,7 @@ app.post("/fileLines", (req, res) => {
 
 app.post("/fileData", (req, res) => {
   const filePath = req.body.path;
+  console.log(req.body);
   File.findOne({path: filePath}, (err, file) => {
     if(err) throw err;
 

@@ -66,7 +66,6 @@ class Table extends Component {
         
         this.setState({
           data: res.data.data,
-         // positionInFile: res.data.pos,
         });
       })
       .catch((err) => {
