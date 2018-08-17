@@ -84,6 +84,7 @@ class Table extends Component {
 
 
   handlePageChange = (pageNumber) => {
+    
     let active100data = Math.floor(this.state.perPage * pageNumber / 100) + 1;
     if(pageNumber <= 0)
       pageNumber = 1;
@@ -95,20 +96,20 @@ class Table extends Component {
        || Math.ceil(this.state.fileLines / this.state.perPage) === pageNumber 
        || (pageNumber < this.state.activePage && this.state.perPage * pageNumber % 100 === 0)){
       
-      if(Math.ceil(this.state.fileLines / this.state.perPage) === pageNumber 
+      if((Math.ceil(this.state.fileLines / this.state.perPage) === pageNumber && this.state.fileLines % 100 === 0)
       || (pageNumber < this.state.activePage 
-      && this.state.perPage * pageNumber % 100 === 0))
+      && this.state.perPage * pageNumber % 100 === 0 && this.state.fileLines % 100 === 0))
         active100data--;
 
-        let newFileBody = {
-          path: this.state.path,
-          arrayOfObjProps: this.state.arrayOfObjProps,
-          positionInFile: this.state.positionInFile,
-          perPage: this.state.perPage,
-          activePage: active100data
-        }
+      let newFileBody = {
+        path: this.state.path,
+        arrayOfObjProps: this.state.arrayOfObjProps,
+        positionInFile: this.state.positionInFile,
+        perPage: this.state.perPage,
+        activePage: active100data
+      }
 
-     
+        
       axios.post('/fileData', newFileBody)
         .then((res) => {
           console.log(res.data);

@@ -58,6 +58,7 @@ app.post("/add", (req, res) => {
     return;
   }
   let fd = fs.openSync(req.body.path, 'r');
+  let sizeOfFile = fs.statSync(req.body.path);
   let posInFile = 0;
   let readBytes = 0;
   let buffr = new Buffer(128);
@@ -74,7 +75,7 @@ app.post("/add", (req, res) => {
       line = line.slice(0, firstNewLine);
       
       posInFile += line.length + 1;
-      if(i !== 0 && i % 100 === 0) {
+      if((i !== 0 && i % 100 === 0) || (posInFile === sizeOfFile)) {
         bodyPos.end = posInFile
         let newBodyPos = {
           start: bodyPos.start,
@@ -89,6 +90,14 @@ app.post("/add", (req, res) => {
       }
       
       
+  }
+  
+  if(bodyPos.end !== posInFile){
+    let newBodyPosLast = {
+      start: bodyPos.start,
+      end: posInFile
+    } 
+    arrPos.push(newBodyPosLast);
   }
 
   let sendBody = {
@@ -154,7 +163,7 @@ app.post("/fileLines", (req, res) => {
     }
   })
   .on('end', () => {
-    res.send(count + "");
+    res.send((count) + "");
   })
 })
 
@@ -167,7 +176,10 @@ app.post("/fileData", (req, res) => {
     const bodyStartEnd = file.postion_list[req.body.activePage-1];
     let fd = fs.openSync(filePath, 'r');
     let lines = [];
-    
+    if(bodyStartEnd === undefined){
+      console.log(req.body);
+      console.log(file);
+    }
     let posInFile = bodyStartEnd.start;
     while(posInFile != bodyStartEnd.end) {
       let buffr = new Buffer(128);
