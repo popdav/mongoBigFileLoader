@@ -31,6 +31,11 @@ class Table extends Component {
 
   handleDivClick(e) {
     e.preventDefault();
+    this.setState({
+      activePage: 1,
+      active100: 1,
+      perPage: 5,
+    })
     this.state.showFunc();
   }
 
@@ -58,10 +63,10 @@ class Table extends Component {
         arrayOfObjProps: nextProps.data.data.arrayOfObjProps,
         positionInFile: nextProps.data.data.pos+1,
         perPage: this.state.perPage,
-        activePage: this.state.activePage,
+        activePage: this.state.active100,
         active100: this.state.active100
       }
-
+      console.log(newFileBody);
       axios.post('/fileData', newFileBody)
       .then((res) => {
         
