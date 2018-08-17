@@ -159,13 +159,13 @@ app.post("/fileLines", (req, res) => {
 
 app.post("/fileData", (req, res) => {
   const filePath = req.body.path;
-  console.log(req.body);
   File.findOne({path: filePath}, (err, file) => {
     if(err) throw err;
 
     const bodyStartEnd = file.postion_list[req.body.activePage-1];
     let fd = fs.openSync(filePath, 'r');
     let lines = [];
+    
     let posInFile = bodyStartEnd.start;
     while(posInFile != bodyStartEnd.end) {
       let buffr = new Buffer(128);

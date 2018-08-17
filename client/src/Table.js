@@ -26,6 +26,7 @@ class Table extends Component {
     this.handlePageChange = this.handlePageChange.bind(this);
     this.handlePerPageChange = this.handlePerPageChange.bind(this);
     this.handleDivClick = this.handleDivClick.bind(this);
+    this.handleScroll = this.handleScroll.bind(this);
   }
 
   handleDivClick(e) {
@@ -79,6 +80,11 @@ class Table extends Component {
 
   handlePageChange = (pageNumber) => {
     let active100data = Math.floor(this.state.perPage * pageNumber / 100) + 1;
+    if(pageNumber <= 0)
+      pageNumber = 1;
+
+    if(pageNumber > Math.ceil(this.state.fileLines / this.state.perPage))
+      pageNumber = Math.ceil(this.state.fileLines / this.state.perPage);
     
     if((this.state.perPage * pageNumber % 100 !== 0  && Math.floor(this.state.perPage * pageNumber / 100) + 1 !== this.state.active100)
        || Math.ceil(this.state.fileLines / this.state.perPage) === pageNumber 
@@ -97,7 +103,7 @@ class Table extends Component {
           activePage: active100data
         }
 
-      console.log(newFileBody);
+     
       axios.post('/fileData', newFileBody)
         .then((res) => {
           console.log(res.data);
@@ -142,6 +148,23 @@ class Table extends Component {
     
   }
 
+  componentDidMount = () => {
+    window.addEventListener('wheel', this.handleScroll);
+  }
+
+  componentWillUnmount = () => {
+      window.removeEventListener('wheel', this.handleScroll);
+  }
+
+  handleScroll = (event) => {
+      event.preventDefault();
+      if(event.wheelDelta > 0) {
+        this.handlePageChange(this.state.activePage+1);
+      } else if(event.wheelDelta < 0) {
+        this.handlePageChange(this.state.activePage - 1)
+      }
+  }
+
   render() {
     let styleT = {display: "block"};
     if(!this.props.showing)
@@ -161,7 +184,7 @@ class Table extends Component {
     const subArr = arr.slice(indexOdfFirst, indeOfLast);
     
     return (
-      <div className="Table" style={styleT}>
+      <div className="Table" style={styleT} >
         <button className="btn btn-primary btn-lg" onClick={this.handleDivClick}>Back</button>
         <br/>
         <label>
