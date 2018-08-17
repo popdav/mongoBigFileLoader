@@ -56,8 +56,8 @@ class Cell extends Component {
   }
 
   delClick() {
-
-    axios.post('/delete', this.state.element)
+    console.log(this.state.element);
+    axios.post('/delete', {path: this.state.element.path})
       .then((res) => {
         console.log(res);
       })

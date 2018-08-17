@@ -18,9 +18,9 @@ app.use(express.static(__dirname + '/public'));
 app.use('/bower_components', express.static(__dirname + '/bower_components'));
 app.use(morgan('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(bodyParser.text());
-app.use(bodyParser.json({type: 'application/vnd.api+json'}));
+
+app.use(bodyParser.json({limit: '100gb', extended: true, parameterLimit:50000000000}));
+app.use(bodyParser.urlencoded({limit: '100gb', extended: true, parameterLimit:50000000000}));
 app.use(methodOverride());
 
 mongoose.Promise = global.Promise;
@@ -109,6 +109,7 @@ app.post("/add", (req, res) => {
 });
 
 app.post("/delete", (req, res) => {
+  console.log(req.body);
   File.findOneAndRemove({path: req.body.path},  (err) => {
     if (err) return handleError(err);
     res.send("1");
