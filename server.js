@@ -36,7 +36,7 @@ let File = mongoose.model("File", fileListSchema);
 app.get("/files", (req, res) => {
   File.find((err, list) => {
     if(err) throw err;
-
+    // console.log("File list: " + list.toString());
     res.send(list);
   })
 });
@@ -57,6 +57,7 @@ app.post("/add", (req, res) => {
     res.status(400).send("File does not exist!");
     return;
   }
+  console.log("Adding file: " + req.body.path);
   let fd = fs.openSync(req.body.path, 'r');
   let sizeOfFile = fs.statSync(req.body.path);
   let posInFile = 0;
@@ -118,7 +119,7 @@ app.post("/add", (req, res) => {
 });
 
 app.post("/delete", (req, res) => {
-  console.log(req.body);
+  console.log("Deleting file: " + req.body.path);
   File.findOneAndRemove({path: req.body.path},  (err) => {
     if (err) return handleError(err);
     res.send("1");
@@ -140,12 +141,13 @@ app.post("/fileProps", (req, res) => {
         line = line.slice(0, firstNewLine);
         delimiter = CSV.detect(line);
         line = line.replace(new RegExp(delimiter, "g"), " ");
+        line = line.replace(new RegExp('"', "g"), "");
       }
 
       fs.close(fd, (err) => {
         if(err) throw err;
       });
-
+      console.log("Field names: " + line);
       res.send(line);
 
     })
@@ -163,6 +165,7 @@ app.post("/fileLines", (req, res) => {
     }
   })
   .on('end', () => {
+    console.log("Number of lines: " + count);
     res.send((count) + "");
   })
 })
@@ -173,6 +176,7 @@ app.post("/fileData", (req, res) => {
   File.findOne({path: filePath}, (err, file) => {
     if(err) throw err;
 
+    console.log("Reading file: " + filePath);
     const bodyStartEnd = file.postion_list[req.body.activePage-1];
     let fd = fs.openSync(filePath, 'r');
     let lines = [];
@@ -185,7 +189,8 @@ app.post("/fileData", (req, res) => {
       let buffr = new Buffer(128);
       let readBytes = fs.readSync(fd, buffr, 0, buffr.length, posInFile);
       
-      if(readBytes > 0) {      
+      if(readBytes > 0) {  
+          
         let line = buffr.slice(0, readBytes).toString();
         let firstNewLine = line.indexOf("\n");
         delimiter = CSV.detect(line);
@@ -197,6 +202,8 @@ app.post("/fileData", (req, res) => {
         
         let obj = {};
         for(let j=0; j<req.body.arrayOfObjProps.length; j++) {
+          if(line[j] === undefined)
+            continue;
           if(line[j].charAt(0) === '"' && line[j].charAt(line[j].length-1) === '"'){
             line[j] = line[j].substring(1, line[j].length-1)
           }

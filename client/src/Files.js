@@ -19,15 +19,20 @@ class Files extends Component {
     this.handlePageChange = this.handlePageChange.bind(this);
     this.handelAddFormInput = this.handelAddFormInput.bind(this);
     this.refrFiles = this.refrFiles.bind(this);
+    this.loadingRef = React.createRef();
   }
 
   componentDidMount() {
-
+    this.loadingRef.current.style.display = "block";
     this.callFiles()
       .then(res => {
         this.setState({ files: res});
+        this.loadingRef.current.style.display = "none";
       })
-      .catch(err => console.log(err));
+      .catch(err => {
+        this.loadingRef.current.style.display = "none";
+        console.log(err);
+      })
   }
 
   handelAddFormInput = (event) => {
@@ -58,13 +63,15 @@ class Files extends Component {
     }
 
     console.log(newBody);
-
+    this.loadingRef.current.style.display = "block";
     axios.post('/add', newBody)
     .then((response) => {
       console.log(response);
+      this.loadingRef.current.style.display = "none";
     })
     .catch((error) => {
       console.log(error);
+      this.loadingRef.current.style.display = "none";
     });
   }
 
@@ -88,6 +95,7 @@ class Files extends Component {
     function handleAddClick () {
       addForm.current.style.display = "block";
     }
+    
 
     function handleOutForm () {
       // addForm.current.style.display = "none";
@@ -111,7 +119,7 @@ class Files extends Component {
         </div>
 
 
-
+        <div ref={this.loadingRef} className="loader"></div>
         <table className=" table-hover " style={styleT}>
           <tbody><tr><th>Files:</th></tr></tbody>
           {

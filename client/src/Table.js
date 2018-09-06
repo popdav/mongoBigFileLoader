@@ -224,6 +224,7 @@ class Table extends Component {
 
           />
         </div>
+        
       </div>
     );
   }
