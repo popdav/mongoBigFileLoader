@@ -66,7 +66,7 @@ class Table extends Component {
         searchQuery: null
       });
 
-      axios.post('/bulknumofrecors', {path: nextProps.data.data.path})
+      axios.post('/numofrecors', {path: nextProps.data.data.path})
       .then((res) => {
         
         this.setState({fileLines: res.data});
@@ -83,7 +83,7 @@ class Table extends Component {
       }
 
       console.log(newFileBody);
-      axios.post('/bulkfiledata', newFileBody)
+      axios.post('/filedataoffset', newFileBody)
       .then((res) => {
         console.log(res.data);
         this.setState({
@@ -127,7 +127,7 @@ class Table extends Component {
       }
 
       this.loadingRef.current.style.display = "block";
-      axios.post('/bulkfiledata', newFileBody)
+      axios.post('/filedataoffset', newFileBody)
         .then((res) => {
           console.log(res);
           this.setState({
@@ -159,7 +159,7 @@ class Table extends Component {
 
 
     this.loadingRef.current.style.display = "block";
-    axios.post('/bulkfiledata', newFileBody)
+    axios.post('/filedataoffset', newFileBody)
       .then((res) => {
         this.loadingRef.current.style.display = "none";
         console.log(res);
@@ -212,7 +212,7 @@ class Table extends Component {
     }
 
     this.loadingRef.current.style.display = "block";
-    axios.post('/bulkfiledata', newFileBody)
+    axios.post('/filedataoffset', newFileBody)
       .then((res) => {
         console.log(res);
         this.setState({
@@ -244,7 +244,7 @@ class Table extends Component {
       }
 
       this.loadingRef.current.style.display = "block";
-      axios.post('/bulkfiledata', newFileBody)
+      axios.post('/filedataoffset', newFileBody)
         .then((res) => {
           console.log(res.data);
           this.setState({
@@ -282,7 +282,7 @@ class Table extends Component {
     }
 
     this.loadingRef.current.style.display = "block";
-    axios.post('/bulkfiledata', newFileBody)
+    axios.post('/filedataoffset', newFileBody)
       .then((res) => {
         console.log(res.data);
         this.setState({

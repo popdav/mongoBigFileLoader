@@ -50,7 +50,7 @@ class Files extends Component {
   }
 
   callFiles = async () => {
-    const response = await fetch('/bulkfiles');
+    const response = await fetch('/files');
     const body = await response.json();
     if (response.status !== 200) throw Error(body.message);
 
@@ -64,7 +64,7 @@ class Files extends Component {
 
     console.log(newBody);
     this.loadingRef.current.style.display = "block";
-    axios.post('/bulkadd', newBody)
+    axios.post('/addoff', newBody)
     .then((response) => {
       console.log(response);
       this.loadingRef.current.style.display = "none";
@@ -76,7 +76,7 @@ class Files extends Component {
   }
 
   refrFiles = () => {
-    axios.get("/bulkfiles")
+    axios.get("/files")
     .then((res) => {
       
       this.setState({ files: res.data});

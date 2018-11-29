@@ -24,65 +24,176 @@ app.use(bodyParser.json({limit: '100gb', extended: true, parameterLimit:50000000
 app.use(bodyParser.urlencoded({limit: '100gb', extended: true, parameterLimit:50000000000}));
 app.use(methodOverride());
 //
-
-let db1;
+const buffSize = 1024;
+let db1, dbOff;
 MongoClient.connect("mongodb://localhost:27017/", { useNewUrlParser: true },(err, db) => {
   if(err) throw err;
   db1 = db.db("fileList-test");
+  dbOff = db.db("fileListOffset")
 });
 
-app.post('/bulkadd', (req, res) => {
-		
-  const filename = req.body.path;
-  if(!fs.existsSync(filename)) {
+//post poziv za dodavanje niz offseta u mongo i njihovo indeksiranje 
+app.post('/addoff', (req,res) => {
+  const filepath = req.body.path;
+  //provera da li fajl vec postoji
+  if(!fs.existsSync(filepath)) {
     console.log({fileExists: false});
     res.send({fileExists: false});
     return;
   }
-
-  let bulk = db1.collection(filename).initializeOrderedBulkOp();
-
-  let fd = fs.openSync(filename, 'r');
+  // inicijalizacija bulka
+  let bulk = dbOff.collection(filepath).initializeOrderedBulkOp();
+  let fd = fs.openSync(filepath, 'r');
   let posInFile = 0;
   let readBytes = 0;
-  let buffr = new Buffer(128);
+  let buffr = new Buffer(buffSize);
 
-  let fieldNames = [];
-
+  //citanje fajla liniju po liniju
   for(let i=0; (readBytes = fs.readSync(fd, buffr, 0, buffr.length, posInFile)) > 0; i++) {
+    //parsiranje linije
     let line = buffr.toString();
     let firstNewLine = line.indexOf("\n");
     line = line.slice(0, firstNewLine);
-    posInFile += line.length + 1;
-
-    if(i === 0) {
+    //pomeranje u fajlu
+    
+    //ukoliko je i == 0 samo detektuj delimiter i ne radi nista (prvi red je field names)
+    if(i == 0) {      
       delimiter = CSV.detect(line);
-      line = line.replace(new RegExp('"', "g"), "");
-      fieldNames = line.split(new RegExp(delimiter, "g"));
     } else {
+      //dodaj u bulk
+      // console.log(line)  
+      bulk.insert({_id: i-1, pos: posInFile}); 
+    }
+    posInFile += line.length + 1;
+  }
+  //izvrsi bulk
+  bulk.execute((err, result) => {
+    if(err) throw err;
+    // console.log(result);
+  })
+
+  res.send({file_added: true});
+})
+
+//poziv za slanje podataka
+app.post('/filedataoffset', (req, res) => {
+  /*
+  let newFileBody = {
+        path: nextProps.data.data.path,
+        activePage: this.state.active100,
+        sortBy: this.state.sortBy,
+        searchQuery: null
+      }
+  */ 
+  const fileName = req.body.path;
+  const wh = req.body.activePage - 1;
+
+  let options = {
+    "limit": 100,//limitrano na 100 podataka
+    "skip": wh*100//kojih 100 uzimamo
+  }
+
+  console.log(options)
+
+  dbOff.collection(fileName).find({}, options).toArray((err, docs) => {
+    if(err) throw err;
+
+    //uzimanje podataka iz fajla
+    let fd = fs.openSync(fileName, 'r');
+    let posInFile = 0;
+    let readBytes = 0;
+    let buffr = new Buffer(buffSize);
+
+    //uzimanje polja iz fajla
+    let fieldNames = [];
+    readBytes = fs.readSync(fd, buffr, 0, buffr.length, 0);
+    let lineF = buffr.toString();
+    let firstNewLineF = lineF.indexOf("\n");
+    lineF = lineF.slice(0, firstNewLineF);
+    delimiter = CSV.detect(lineF);//provera za delimiter
+    lineF = lineF.replace(new RegExp('"', "g"), "");
+    fieldNames = lineF.split(new RegExp(delimiter, "g")); 
+    console.log(fieldNames);
+    //
+
+    //prolazak kroz fajl i pravljenje niza
+    let bodyArr = [];
+    for(let i=0; i < docs.length; i++) {
+      //citanje linija po linija
+      readBytes = fs.readSync(fd, buffr, 0, buffr.length, docs[i].pos);
+      let line = buffr.toString();
+      let firstNewLine = line.indexOf("\n");
+      line = line.slice(0, firstNewLine);
+      
       line = line.split(new RegExp(delimiter, "g"));
+      //parsiranje u JSON objekat
       let newBodyF = {};
       for(let j=0; j<fieldNames.length; j++){
-        newBodyF[fieldNames[j]] = line[j].replace(new RegExp('"', 'g'), '');
-        if(!isNaN(newBodyF[fieldNames[j]]) && newBodyF[fieldNames[j]] != ''){
+        newBodyF[fieldNames[j]] = line[j].replace(new RegExp('"', 'g'), ''); // zamena navodnika sa praznim stringom
+        if(!isNaN(newBodyF[fieldNames[j]]) && newBodyF[fieldNames[j]] != ''){ //provera da li je broj
           newBodyF[fieldNames[j]] = Number(newBodyF[fieldNames[j]]);
         }
       }
-      bulk.insert(newBodyF);
-    }
-  }
-
-    bulk.execute((err, result) => {
-      if(err) throw err;
-      // console.log(result);
-    });
-  
-  res.send({file_added: true});
+      bodyArr.push(newBodyF);
       
-  });
+    }
+    res.send(bodyArr);
+  })
 
-app.get("/bulkfiles", (req, res) => {
-  db1.listCollections().toArray((err, collInfos) => {
+})
+
+// app.post('/bulkadd', (req, res) => {
+		
+//   const filename = req.body.path;
+//   if(!fs.existsSync(filename)) {
+//     console.log({fileExists: false});
+//     res.send({fileExists: false});
+//     return;
+//   }
+
+//   let bulk = db1.collection(filename).initializeOrderedBulkOp();
+
+//   let fd = fs.openSync(filename, 'r');
+//   let posInFile = 0;
+//   let readBytes = 0;
+//   let buffr = new Buffer(128);
+
+//   let fieldNames = [];
+
+//   for(let i=0; (readBytes = fs.readSync(fd, buffr, 0, buffr.length, posInFile)) > 0; i++) {
+//     let line = buffr.toString();
+//     let firstNewLine = line.indexOf("\n");
+//     line = line.slice(0, firstNewLine);
+//     posInFile += line.length + 1;
+
+//     if(i === 0) {
+//       delimiter = CSV.detect(line);
+//       line = line.replace(new RegExp('"', "g"), "");
+//       fieldNames = line.split(new RegExp(delimiter, "g"));
+//     } else {
+//       line = line.split(new RegExp(delimiter, "g"));
+//       let newBodyF = {};
+//       for(let j=0; j<fieldNames.length; j++){
+//         newBodyF[fieldNames[j]] = line[j].replace(new RegExp('"', 'g'), '');
+//         if(!isNaN(newBodyF[fieldNames[j]]) && newBodyF[fieldNames[j]] != ''){
+//           newBodyF[fieldNames[j]] = Number(newBodyF[fieldNames[j]]);
+//         }
+//       }
+//       bulk.insert(newBodyF);
+//     }
+//   }
+
+//     bulk.execute((err, result) => {
+//       if(err) throw err;
+//       // console.log(result);
+//     });
+  
+//   res.send({file_added: true});
+      
+// });
+
+app.get("/files", (req, res) => {
+  dbOff.listCollections().toArray((err, collInfos) => {
     let arrNames = [];
     for(let i=0; i<collInfos.length; i++) {
       arrNames.push(collInfos[i].name);
@@ -91,43 +202,43 @@ app.get("/bulkfiles", (req, res) => {
   });
 })
 
-app.post("/bulkdelete", (req, res) => {
+app.post("/delete", (req, res) => {
   let collName = req.body.path;
-  db1.collection(collName).drop((err, delOK) => {
+  dbOff.collection(collName).drop((err, delOK) => {
     if (err) throw err;
     if (delOK) console.log("Collection deleted");
     res.send({collection_deleted : true});
   });
 })
 
-app.post("/bulkfiledata", (req, res) => {
-  console.log(req.body);
-  let collName = req.body.path;
-  let sortBy = req.body.sortBy;
-  let i = req.body.activePage-1;
-  let options = {
-    "limit": 100,
-    "skip": i*100,
-    "sort": sortBy
-  }
-  console.log(options);
-  if(sortBy !== null){
-    db1.collection(collName).ensureIndex({[sortBy] : 1});
-  }
-  db1.collection(collName).find(req.body.searchQuery, options).toArray((err, docs) => {
-    if(err) throw err;
-    console.log(docs.length);
-    for(let i=0; i<docs.length; i++)
-    {
-      delete docs[i]['_id'];
-    }
-    res.send(docs);
-  })
-})
+// app.post("/bulkfiledata", (req, res) => {
+//   console.log(req.body);
+//   let collName = req.body.path;
+//   let sortBy = req.body.sortBy;
+//   let i = req.body.activePage-1;
+//   let options = {
+//     "limit": 100,
+//     "skip": i*100,
+//     "sort": sortBy
+//   }
+//   console.log(options);
+//   if(sortBy !== null){
+//     db1.collection(collName).ensureIndex({[sortBy] : 1});
+//   }
+//   db1.collection(collName).find(req.body.searchQuery, options).toArray((err, docs) => {
+//     if(err) throw err;
+//     console.log(docs.length);
+//     for(let i=0; i<docs.length; i++)
+//     {
+//       delete docs[i]['_id'];
+//     }
+//     res.send(docs);
+//   })
+// })
 
-app.post("/bulknumofrecors", (req, res) => {
+app.post("/numofrecors", (req, res) => {
   let collName = req.body.path;
-  db1.collection(collName).count((err, num) => {
+  dbOff.collection(collName).count((err, num) => {
     res.send(num + "");
   })
 })
