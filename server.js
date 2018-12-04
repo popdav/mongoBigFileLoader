@@ -25,10 +25,9 @@ app.use(bodyParser.urlencoded({limit: '100gb', extended: true, parameterLimit:50
 app.use(methodOverride());
 //
 const buffSize = 1024;
-let db1, dbOff;
+let dbOff;
 MongoClient.connect("mongodb://localhost:27017/", { useNewUrlParser: true },(err, db) => {
   if(err) throw err;
-  db1 = db.db("fileList-test");
   dbOff = db.db("fileListOffset")
 });
 
@@ -92,7 +91,7 @@ app.post('/filedataoffset', (req, res) => {
     "limit": 100,//limitrano na 100 podataka
     "skip": wh*100//kojih 100 uzimamo
   }
-
+  
   console.log(options)
 
   dbOff.collection(fileName).find({}, options).toArray((err, docs) => {
@@ -140,6 +139,11 @@ app.post('/filedataoffset', (req, res) => {
     res.send(bodyArr);
   })
 
+})
+
+app.post('/sort', (req, res) => {
+  const sortBy = 'first_name';
+  const fileName = '/home/david/Downloads/test1.csv	';
 })
 
 // app.post('/bulkadd', (req, res) => {
