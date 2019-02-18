@@ -93,54 +93,62 @@ app.post('/filedataoffset', (req, res) => {
     dbOff.collection(fileName).ensureIndex({[req.body.sortBy] : 1});
   }
 
-
-  dbOff.collection(fileName).find({}, options).toArray((err, docs) => {
-    if(err) throw err;
-    
-    //uzimanje podataka iz fajla
-    let fd = fs.openSync(fileName, 'r');
-    let posInFile = 0;
-    let readBytes = 0;
-    let buffr = new Buffer(buffSize);
-
-    //uzimanje polja iz fajla
-    let fieldNames = [];
-    readBytes = fs.readSync(fd, buffr, 0, buffr.length, 0);
-    let lineF = buffr.toString();
-    let firstNewLineF = lineF.indexOf("\n");
-    lineF = lineF.slice(0, firstNewLineF);
-    delimiter = CSV.detect(lineF);//provera za delimiter
-    lineF = lineF.replace(new RegExp('"', "g"), "");
-    fieldNames = lineF.split(new RegExp(delimiter, "g")); 
-    console.log(fieldNames);
-    //
-
-    //prolazak kroz fajl i pravljenje niza
-    let bodyArr = [];
-    for(let i=0; i < docs.length; i++) {
-      //citanje linija po linija
-      readBytes = fs.readSync(fd, buffr, 0, buffr.length, docs[i].pos);
-      let line = buffr.toString();
-      let firstNewLine = line.indexOf("\n");
-      line = line.slice(0, firstNewLine);
-      line = line.split(new RegExp(delimiter, "g"));
-      // console.log(docs[i]);
-      //parsiranje u JSON objekat
-      let newBodyF = {};
-      for(let j=0; j<fieldNames.length; j++){
-        newBodyF[fieldNames[j]] = line[j].replace(new RegExp('"', 'g'), ''); // zamena navodnika sa praznim stringom
-        if(!isNaN(newBodyF[fieldNames[j]]) && newBodyF[fieldNames[j]] != ''){ //provera da li je broj
-          newBodyF[fieldNames[j]] = Number(newBodyF[fieldNames[j]]);
-        }
-      }
-      if(req.body.searchQuery !== null && newBodyF[searchQueryKeys[0]].includes(req.body.searchQuery[searchQueryKeys[0]]))
-        bodyArr.push(newBodyF);
-      else if(req.body.searchQuery === null)
-        bodyArr.push(newBodyF);
+  let bodyArr = [];
+  let sendPromise = new Promise((resolve, reject) => {
+    dbOff.collection(fileName).find({}, options).toArray((err, docs) => {
+      if(err) throw err;
       
-    }
+      //uzimanje podataka iz fajla
+      let fd = fs.openSync(fileName, 'r');
+      let posInFile = 0;
+      let readBytes = 0;
+      let buffr = new Buffer(buffSize);
+  
+      //uzimanje polja iz fajla
+      let fieldNames = [];
+      readBytes = fs.readSync(fd, buffr, 0, buffr.length, 0);
+      let lineF = buffr.toString();
+      let firstNewLineF = lineF.indexOf("\n");
+      lineF = lineF.slice(0, firstNewLineF);
+      delimiter = CSV.detect(lineF);//provera za delimiter
+      lineF = lineF.replace(new RegExp('"', "g"), "");
+      fieldNames = lineF.split(new RegExp(delimiter, "g")); 
+      console.log(fieldNames);
+      //
+  
+      //prolazak kroz fajl i pravljenje niza
+      
+      for(let i=0; i < docs.length; i++) {
+        //citanje linija po linija
+        readBytes = fs.readSync(fd, buffr, 0, buffr.length, docs[i].pos);
+        let line = buffr.toString();
+        let firstNewLine = line.indexOf("\n");
+        line = line.slice(0, firstNewLine);
+        line = line.split(new RegExp(delimiter, "g"));
+        // console.log(docs[i]);
+        //parsiranje u JSON objekat
+        let newBodyF = {};
+        for(let j=0; j<fieldNames.length; j++){
+          newBodyF[fieldNames[j]] = line[j].replace(new RegExp('"', 'g'), ''); // zamena navodnika sa praznim stringom
+          if(!isNaN(newBodyF[fieldNames[j]]) && newBodyF[fieldNames[j]] != ''){ //provera da li je broj
+            newBodyF[fieldNames[j]] = Number(newBodyF[fieldNames[j]]);
+          }
+        }
+        if(req.body.searchQuery !== null && newBodyF[searchQueryKeys[0]].includes(req.body.searchQuery[searchQueryKeys[0]]))
+          bodyArr.push(newBodyF);
+        else if(req.body.searchQuery === null)
+          bodyArr.push(newBodyF);
+        
+      }
+      resolve();
+      // res.send(bodyArr);
+    })
+  })
+
+  sendPromise.then(() => {
     res.send(bodyArr);
   })
+  
 
 })
 
@@ -251,6 +259,13 @@ io.on('connection', (client) => {
           if(err) throw err;
   
           if(doc !== null) {
+            if(sortBy in doc){
+              console.log("Sortirano je vec po:")
+              console.log(sortBy)
+              client.emit('startsort', body);
+              return false;
+            }
+
             readBytes = fs.readSync(fd, buffr, 0, buffr.length, doc.pos);
             let line = buffr.toString();
             let firstNewLine = line.indexOf("\n");
