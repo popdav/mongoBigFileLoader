@@ -7,6 +7,8 @@ import axios from 'axios';
 
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import openSocket from 'socket.io-client';
+
 
 
 class Table extends Component {
@@ -22,6 +24,7 @@ class Table extends Component {
       active100: 1,
       sortBy: null,
       searchQuery: null,
+      socket: openSocket('http://localhost:5000')
     }
     
     this.handlePageChange = this.handlePageChange.bind(this);
@@ -33,6 +36,7 @@ class Table extends Component {
     this.handleFindChange = this.handleFindChange.bind(this);
     this.IsJsonString = this.IsJsonString.bind(this);
     this.resetClick = this.resetClick.bind(this);
+    this.enterPress = this.enterPress.bind(this);
 
     this.loadingRef = React.createRef();
     this.findRef = React.createRef();
@@ -112,11 +116,12 @@ class Table extends Component {
     if((this.state.perPage * pageNumber % 100 !== 0  && Math.floor(this.state.perPage * pageNumber / 100) + 1 !== this.state.active100)
        || Math.ceil(this.state.fileLines / this.state.perPage) === pageNumber 
        || (pageNumber < this.state.activePage && this.state.perPage * pageNumber % 100 === 0)){
-      
+
       if((Math.ceil(this.state.fileLines / this.state.perPage) === pageNumber && this.state.fileLines % 100 === 0)
-      || (pageNumber < this.state.activePage 
-      && this.state.perPage * pageNumber % 100 === 0 && this.state.fileLines % 100 === 0))
+        || (pageNumber < this.state.activePage 
+        && this.state.perPage * pageNumber % 100 === 0)){
         active100data--;
+      }
       
       
       let newFileBody = {
@@ -210,22 +215,27 @@ class Table extends Component {
       sortBy: this.state.arrayOfObjProps[i],
       searchQuery: JSON.parse(this.state.searchQuery)
     }
-
     this.loadingRef.current.style.display = "block";
-    axios.post('/filedataoffset', newFileBody)
-      .then((res) => {
-        console.log(res);
-        this.setState({
-          data: res.data,
-          sortBy:this.state.arrayOfObjProps[i],
-          activePage: 1,
-          active100: 1
-        });
-        this.loadingRef.current.style.display = "none";
-      })
-      .catch((err) => {
-        console.log(err);
-      })
+    // const  socket = openSocket('http://localhost:5000');
+    this.state.socket.emit('addsort', newFileBody);
+    this.state.socket.on('startsort', (body) => {
+      // console.log("USAOOOOOO!");
+      axios.post('/filedataoffset', body)
+        .then((res) => {
+          this.loadingRef.current.style.display = "none";
+          console.log(res);
+          this.setState({
+            data: res.data,
+            activePage: 1,
+            active100: 1,
+            sortBy : this.state.arrayOfObjProps[i]
+          });
+          return;
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+    })
   }
   handleFindChange(event) {
     this.setState({searchQuery: event.target.value});
@@ -263,7 +273,12 @@ class Table extends Component {
       alert("This isn't JSON object!");
     }
   }
-
+  enterPress(e) {
+    if(e.keyCode === 13) {
+      // console.log(e.target.value);
+      this.findQuery();
+    }
+  }
   IsJsonString(str) {
     try {
         JSON.parse(str);
@@ -313,10 +328,9 @@ class Table extends Component {
     const currPage = this.state.activePage;
     const perPage = this.state.perPage;
 
-    const indeOfLast = currPage * perPage - (this.state.active100 - 1) * 100;
+    const indeOfLast = currPage * perPage - (this.state.active100-1) * 100;
     const indexOdfFirst = indeOfLast - perPage;
     const subArr = arr.slice(indexOdfFirst, indeOfLast);
-    
     return (
       <div>
         
@@ -335,7 +349,7 @@ class Table extends Component {
           </label>
           <button onClick={this.resetClick} className="btn btn-lg btn-danger reset-btn">Reset</button>
           <div className="form-inline pull-right findIput">
-            find(<strong><input ref={this.findRef} onChange={this.handleFindChange} className="form-control input-font-size" /></strong>)
+            find(<strong><input ref={this.findRef} onChange={this.handleFindChange} onKeyDown={this.enterPress} className="form-control input-font-size" /></strong>)
             <button onClick={this.findQuery} className="btn btn-lg">Find</button>
           </div>
           <table className="table table-bordered table-style table-hover">

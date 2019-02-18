@@ -7,17 +7,17 @@
     "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
   },
   "dependencies": {
-    "body-parser": "~1.5.2",
-    "circular-json": "^0.3.1",
-    "csv-string": "^3.1.3",
-    "express": "~4.7.2",
-    "file-system": "^2.2.2",
-    "gridfs": "^1.0.0",
-    "gridfs-stream": "^1.1.1",
-    "method-override": "~2.1.2",
+    "body-parser": "",
+    "circular-json": "",
+    "csv-string": "",
+    "express": "",
+    "file-system": "",
+    "method-override": "",
     "mongodb": "",
-    "mongoose": "^4.1.12",
-    "morgan": "~1.2.2"
+    "morgan": "",
+    "promis": "",
+    "promise": "",
+    "socket.io": ""
   },
   "devDependencies": {
     "concurrently": "^3.5.0"
