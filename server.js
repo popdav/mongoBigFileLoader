@@ -25,7 +25,7 @@ const server = app.listen(port, () => console.log(`Listening on port ${port}`));
 const io = require('socket.io')(server);
 //
 const buffSize = 1024;
-let dbOff, dbOff2;
+let dbOff;
 MongoClient.connect("mongodb://localhost:27017/", { useNewUrlParser: true },(err, db) => {
   if(err) throw err;
   dbOff = db.db("fileListOffset");
@@ -85,19 +85,22 @@ app.post('/filedataoffset', (req, res) => {
     "sort" : req.body.sortBy
   }
   console.log(options);
-  let searchQueryKeys;
+  let searchQueryKeys = [];
   if(req.body.searchQuery !== null)
     searchQueryKeys = Object.keys(req.body.searchQuery);  
 
   if(req.body.sortBy !== null){
     dbOff.collection(fileName).ensureIndex({[req.body.sortBy] : 1});
   }
-
-  let bodyArr = [];
-  let sendPromise = new Promise((resolve, reject) => {
+  let bodyArrFin = [];
+  function findInColl(resol, opt, bodyArr) {
     dbOff.collection(fileName).find({}, options).toArray((err, docs) => {
       if(err) throw err;
-      
+      if(docs.length == 0){
+        console.log("Uso u kraj!");
+        resol();
+        return false;
+      }
       //uzimanje podataka iz fajla
       let fd = fs.openSync(fileName, 'r');
       let posInFile = 0;
@@ -134,19 +137,32 @@ app.post('/filedataoffset', (req, res) => {
             newBodyF[fieldNames[j]] = Number(newBodyF[fieldNames[j]]);
           }
         }
-        if(req.body.searchQuery !== null && newBodyF[searchQueryKeys[0]].includes(req.body.searchQuery[searchQueryKeys[0]]))
+        
+        if(req.body.searchQuery !== null && (newBodyF[searchQueryKeys[0]] + "").includes(req.body.searchQuery[searchQueryKeys[0]]))
           bodyArr.push(newBodyF);
         else if(req.body.searchQuery === null)
           bodyArr.push(newBodyF);
         
       }
-      resolve();
+      if(bodyArr.length >= 100){
+        resol();
+        return;
+      } else {
+        opt.skip += 100;
+        console.log(opt);
+        findInColl(resol, opt, bodyArr)
+      }
+      
       // res.send(bodyArr);
     })
+  }
+  
+  let sendPromise = new Promise((resolve, reject) => {
+    findInColl(resolve, options, bodyArrFin);
   })
 
   sendPromise.then(() => {
-    res.send(bodyArr);
+    res.send(bodyArrFin);
   })
   
 
@@ -307,70 +323,6 @@ io.on('connection', (client) => {
 
     })
   });
-  //
-  // client.on('searchquery', (body)=>{
-  //   let searchArr = [];
-  //   if(body !== null) {
-  //     console.log(body);
-  //     const searchQuery = body.searchQuery;
-  //     const fileName = body.path;
-  //     //
-  //     dbOff.collection(fileName).find({}, (err, docs) => {
-  //       if(err) throw err;
   
-  //       let fd = fs.openSync(fileName, 'r');
-  //       let readBytes = 0;
-  //       let buffr = new Buffer(buffSize);
-  
-  //       let fieldNames = [];
-  //       readBytes = fs.readSync(fd, buffr, 0, buffr.length, 0);
-  //       let lineF = buffr.toString();
-  //       let firstNewLineF = lineF.indexOf("\n");
-  //       lineF = lineF.slice(0, firstNewLineF);
-  //       delimiter = CSV.detect(lineF);//provera za delimiter
-  //       lineF = lineF.replace(new RegExp('"', "g"), "");
-  //       fieldNames = lineF.split(new RegExp(delimiter, "g"));
-        
-          
-  //        let docRes = new Promise((resolve, reject) => {
-  //         docs.each((err, doc) => {
-  //           if(err) throw err;
-            
-  //           if(doc != null){
-  //             readBytes = fs.readSync(fd, buffr, 0, buffr.length, doc.pos);
-  //             let line = buffr.toString();
-  //             let firstNewLine = line.indexOf("\n");
-  //             line = line.slice(0, firstNewLine);
-  //             line = line.split(new RegExp(delimiter, "g"));
-      
-  //             //parsiranje u JSON objekat
-  //             let newBodyF = {pos : doc.pos};
-  //             for(let j=0; j<fieldNames.length; j++){
-  //               newBodyF[fieldNames[j]] = line[j].replace(new RegExp('"', 'g'), ''); // zamena navodnika sa praznim stringom
-  //               if(!isNaN(newBodyF[fieldNames[j]]) && newBodyF[fieldNames[j]] != ''){ //provera da li je broj
-  //                 newBodyF[fieldNames[j]] = Number(newBodyF[fieldNames[j]]);
-  //               }
-  //             }
-  //             let searchKeys = Object.keys(searchQuery);
-  //             if(newBodyF[searchKeys[0]] != null && newBodyF[searchKeys[0]].includes(searchQuery[searchKeys[0]]) ){
-  //               // console.log(newBodyF);
-  //               searchArr.push(newBodyF);
-  //             }
-        
-  //           } else {
-  //             resolve();
-  //           }
-  //         })
-  //        })
-         
-  //         docRes.then(() => {
-  //           client.emit('loadsearch', searchArr);
-  //         })
-  
-  //     })
-  //     //
-      
-  //   }
-  // });
 });
 

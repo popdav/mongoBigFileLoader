@@ -261,7 +261,8 @@ class Table extends Component {
             data: res.data,
             searchQuery: this.state.searchQuery,
             activePage: 1,
-            active100: 1
+            active100: 1,
+            fileLines : res.data.length
           });
           this.loadingRef.current.style.display = "none";
         })
@@ -300,14 +301,26 @@ class Table extends Component {
     axios.post('/filedataoffset', newFileBody)
       .then((res) => {
         console.log(res.data);
-        this.setState({
-          data: res.data,
-          activePage: 1,
-          sortBy: null,
-          searchQuery: null
-        });
-        this.findRef.current.value = '';
-        this.loadingRef.current.style.display = "none";
+        //
+        axios.post('/numofrecors', {path: this.state.path})
+        .then((result) => {
+          
+          // this.setState({fileLines: result.data});
+          this.setState({
+            data: res.data,
+            activePage: 1,
+            sortBy: null,
+            searchQuery: null,
+            fileLines: result.data
+          });
+          this.findRef.current.value = '';
+          this.loadingRef.current.style.display = "none";
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        //
+        
       })
       .catch((err) => {
         console.log(err);
