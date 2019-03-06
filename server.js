@@ -24,8 +24,8 @@ app.use(methodOverride());
 const server = app.listen(port, () => console.log(`Listening on port ${port}`));
 const io = require('socket.io')(server);
 //
-const buffSize = 1024;
-let dbOff;
+const buffSize = 1024; //konstanta za velicinu bafera
+let dbOff; //konstanta za mongo bazu
 MongoClient.connect("mongodb://localhost:27017/", { useNewUrlParser: true },(err, db) => {
   if(err) throw err;
   dbOff = db.db("fileListOffset");
@@ -218,7 +218,7 @@ app.post("/fileProps", (req, res) => {
   fs.open(req.body.path, 'r', (err, fd) => {
     if(err) return console.log(err);
 
-    let buffr = new Buffer(128);
+    let buffr = new Buffer(buffSize);
 
     fs.read(fd, buffr, 0, buffr.length, 0, (err, bytes) => {
       if(err) throw err;
