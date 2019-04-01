@@ -19,7 +19,10 @@ class Files extends Component {
     this.handlePageChange = this.handlePageChange.bind(this);
     this.handelAddFormInput = this.handelAddFormInput.bind(this);
     this.refrFiles = this.refrFiles.bind(this);
+    this.handleAddClick = this.handleAddClick.bind(this);
     this.loadingRef = React.createRef();
+    this.addForm = React.createRef();
+    this.inputAddForm = React.createRef();
   }
 
   componentDidMount() {
@@ -39,7 +42,7 @@ class Files extends Component {
     const target = event.target;
     const value = target.value;
     const name = target.name;
-
+    console.log(name + ': ' + value)
     this.setState({
       [name]: value,
     });
@@ -57,7 +60,8 @@ class Files extends Component {
     return body;
   }
 
-  addToDb = () => {
+  addToDb = (e) => {
+    e.preventDefault();
     let newBody = {
       path: this.state.addFile,
     }
@@ -67,34 +71,46 @@ class Files extends Component {
     axios.post('/addoff', newBody)
     .then((response) => {
       console.log(response);
+      if(response.data.fileExists === false)
+        alert("File doesn't exist!")
       this.loadingRef.current.style.display = "none";
+      this.refrFiles();
     })
     .catch((error) => {
       console.log(error);
       this.loadingRef.current.style.display = "none";
     });
+    this.addForm.current.style.display = "none";
+    this.inputAddForm.current.value = ""
+    
   }
 
   refrFiles = () => {
     axios.get("/files")
     .then((res) => {
       
-      this.setState({ files: res.data});
+      this.setState({ 
+        files: res.data,
+        addFile: ''
+      });
+      console.log(this.state)
     })
     .catch((err) => {
       console.log(err);
     })
   }
 
+  handleAddClick () {
+    this.addForm.current.style.display = "block";
+    console.log(this.state)
+  }
   render() {
     let styleT = {display: "block"};
     if(!this.props.showing)
       styleT = {display: "none"};
 
-    let addForm = React.createRef();
-    function handleAddClick () {
-      addForm.current.style.display = "block";
-    }
+    
+    
     
 
     function handleOutForm () {
@@ -105,13 +121,13 @@ class Files extends Component {
     return (
       <div style={styleT} className="FilesTable">
 
-        <button onClick={handleAddClick} className={'btn btnSubmit'}>Add file</button>
+        <button onClick={this.handleAddClick} className={'btn btnSubmit'}>Add file</button>
 
-        <div className={'modal'} ref={addForm} onClick={handleOutForm}>
+        <div className={'modal'} ref={this.addForm} onClick={handleOutForm}>
             <form className={'modal-content'}>
               <div className={"form-group"}>
                 <label>
-                  File path: <input type="text" className={"form-control"} name="addFile" onChange={this.handelAddFormInput}/>
+                  File path: <input type="text" className={"form-control"} ref={this.inputAddForm} name="addFile" onChange={this.handelAddFormInput}/>
                 </label>
               </div>
               <input type="submit" value="Submit" className={'btn btn-danger btnSubmit'} onClick={this.addToDb}/>

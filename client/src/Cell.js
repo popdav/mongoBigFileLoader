@@ -24,7 +24,10 @@ class Cell extends Component {
 
     axios.post('/fileProps', {path: this.state.element})
       .then((res) => {
-        // console.log(res.data);
+        
+        for(let x=0; x<res.data.length;x++)
+          res.data[x] = res.data[x].replace(new RegExp('"', "g"), "");
+     
         this.setState({arrayOfObjProps: res.data});
       })
       .catch((err) => {
@@ -37,7 +40,7 @@ class Cell extends Component {
     e.preventDefault();
     const fBody = {
       path: this.state.element,
-      arrayOfObjProps: this.state.arrayOfObjProps.split(" "),
+      arrayOfObjProps: this.state.arrayOfObjProps,
       pos: this.state.arrayOfObjProps.length
     }
     axios.post('/fileExist', fBody)
