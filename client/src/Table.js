@@ -24,12 +24,13 @@ class Table extends Component {
       active100: 1,
       sortBy: '_id',
       sorting: 'acs',
+      list_sorting: 'asc',
       searchQuery: null,
       socket: openSocket('http://localhost:5000'),
       arrayOfObjProps: [],
       arrayOfObjPropsHeadline: []
     }
-    
+
     this.handlePageChange = this.handlePageChange.bind(this);
     this.handlePerPageChange = this.handlePerPageChange.bind(this);
     this.handleDivClick = this.handleDivClick.bind(this);
@@ -51,7 +52,7 @@ class Table extends Component {
       activePage: 1,
       active100: 1,
       perPage: 5,
-      path : '',
+      path: '',
       data: [],
       sortBy: '_id',
       sorting: 'asc',
@@ -61,10 +62,10 @@ class Table extends Component {
     this.state.showFunc();
   }
 
-  componentWillReceiveProps(nextProps)  {
-    if(nextProps.data.data) {
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.data.data) {
       this.loadingRef.current.style.display = "block";
-      
+
       this.setState({
         activePage: 1,
         path: nextProps.data.data.path,
@@ -87,25 +88,25 @@ class Table extends Component {
       }
 
       axios.post('/filedataoffset', newFileBody)
-      .then((res) => {
-        this.setState({
-          data: res.data,
-        });
-        
-        axios.post('/numofrecors', {path: nextProps.data.data.path})
         .then((res) => {
-          
-          this.setState({fileLines: res.data});
-          this.loadingRef.current.style.display = "none";
+          this.setState({
+            data: res.data,
+          });
+
+          axios.post('/numofrecors', { path: nextProps.data.data.path })
+            .then((res) => {
+
+              this.setState({ fileLines: res.data });
+              this.loadingRef.current.style.display = "none";
+            })
+            .catch((err) => {
+              console.log(err);
+            })
+
         })
         .catch((err) => {
           console.log(err);
         })
-        
-      })
-      .catch((err) => {
-        console.log(err);
-      })
 
     }
 
@@ -113,37 +114,38 @@ class Table extends Component {
 
 
   handlePageChange = (pageNumber) => {
-    if(pageNumber <= 0)
+    if (pageNumber <= 0)
       pageNumber = 1;
 
-    if(pageNumber > Math.ceil(this.state.fileLines / this.state.perPage))
+    if (pageNumber > Math.ceil(this.state.fileLines / this.state.perPage))
       pageNumber = Math.ceil(this.state.fileLines / this.state.perPage);
 
     let active100data = Math.floor(this.state.perPage * pageNumber / 100) + 1;
-    
-    if((this.state.perPage * pageNumber % 100 !== 0  && Math.floor(this.state.perPage * pageNumber / 100) + 1 !== this.state.active100)
-       || Math.ceil(this.state.fileLines / this.state.perPage) === pageNumber 
-       || (pageNumber < this.state.activePage && this.state.perPage * pageNumber % 100 === 0)){
 
-      if((Math.ceil(this.state.fileLines / this.state.perPage) === pageNumber && this.state.fileLines % 2 === 0)
-        || (pageNumber < this.state.activePage 
-        && this.state.perPage * pageNumber % 100 === 0)){
+    if ((this.state.perPage * pageNumber % 100 !== 0 && Math.floor(this.state.perPage * pageNumber / 100) + 1 !== this.state.active100)
+      || Math.ceil(this.state.fileLines / this.state.perPage) === pageNumber
+      || (pageNumber < this.state.activePage && this.state.perPage * pageNumber % 100 === 0)) {
+        console.log(this.state.fileLines)
+      if ((Math.ceil(this.state.fileLines / this.state.perPage) === pageNumber /*&& this.state.fileLines % 2 === 0*/)
+        || (pageNumber < this.state.activePage
+          && this.state.perPage * pageNumber % 100 === 0)) {
+        console.log("usao")
         active100data--;
       }
-      
-      
+
+
       let newFileBody = {
         path: this.state.path,
         activePage: active100data,
         sortBy: this.state.sortBy,
-        sorting: this.state.sorting,
+        sorting: this.state.list_sorting,
         searchQuery: JSON.parse(this.state.searchQuery)
       }
-
+      console.log(newFileBody)
       this.loadingRef.current.style.display = "block";
       axios.post('/filedataoffset', newFileBody)
         .then((res) => {
-          console.log(res);
+          console.log(res.data);
           this.setState({
             data: res.data,
             activePage: pageNumber,
@@ -188,7 +190,7 @@ class Table extends Component {
       .catch((err) => {
         console.log(err);
       })
-    
+
   }
 
   componentDidMount = () => {
@@ -196,16 +198,16 @@ class Table extends Component {
   }
 
   componentWillUnmount = () => {
-      window.removeEventListener('wheel', this.handleScroll);
+    window.removeEventListener('wheel', this.handleScroll);
   }
 
   handleScroll = (event) => {
-      event.preventDefault();
-      if(event.wheelDelta > 0) {
-        this.handlePageChange(this.state.activePage+1);
-      } else if(event.wheelDelta < 0) {
-        this.handlePageChange(this.state.activePage - 1)
-      }
+    event.preventDefault();
+    if (event.wheelDelta > 0) {
+      this.handlePageChange(this.state.activePage + 1);
+    } else if (event.wheelDelta < 0) {
+      this.handlePageChange(this.state.activePage - 1)
+    }
   }
 
   onClickSort(e, i) {
@@ -213,18 +215,18 @@ class Table extends Component {
 
 
     let sortingtmp = this.state.sorting;
-    if(this.state.sortBy !== this.state.arrayOfObjProps[i])
+    if (this.state.sortBy !== this.state.arrayOfObjProps[i])
       sortingtmp = 'asc';
-    
+
 
     this.setState({
       activePage: 1,
       sortBy: this.state.arrayOfObjProps[i]
     });
-    
-    
-    
-    
+
+
+
+
     let newFileBody = {
       path: this.state.path,
       activePage: 1,
@@ -238,25 +240,25 @@ class Table extends Component {
     this.state.socket.emit('addsort', newFileBody);
 
     this.state.socket.on('startsort', (body) => {
-
+      console.log(body);
       let tmpSort;
-      if(body.sorting === 'asc'){
+      let lsort = this.state.sorting;
+      if (body.sorting === 'asc') {
         tmpSort = 'desc';
-      } 
-      else
-      {
+      }
+      else {
         tmpSort = 'asc';
       }
 
       axios.post('/filedataoffset', body)
         .then((res) => {
           this.loadingRef.current.style.display = "none";
-          
+          console.log(res.data);
           let objPropsArr = [];
-          for(let x=0; x<this.state.arrayOfObjProps.length; x++){
-            if(this.state.arrayOfObjProps[x] === this.state.sortBy && body.sorting === 'asc'){
+          for (let x = 0; x < this.state.arrayOfObjProps.length; x++) {
+            if (this.state.arrayOfObjProps[x] === this.state.sortBy && body.sorting === 'asc') {
               objPropsArr.push(this.state.arrayOfObjProps[x] + " ↓");
-            } else if(this.state.arrayOfObjProps[x] === this.state.sortBy && body.sorting === 'desc'){
+            } else if (this.state.arrayOfObjProps[x] === this.state.sortBy && body.sorting === 'desc') {
               objPropsArr.push(this.state.arrayOfObjProps[x] + " ↑");
             } else {
               objPropsArr.push(this.state.arrayOfObjProps[x]);
@@ -268,6 +270,7 @@ class Table extends Component {
             activePage: 1,
             active100: 1,
             sorting: tmpSort,
+            list_sorting: lsort,
             arrayOfObjPropsHeadline: objPropsArr
           });
           return;
@@ -278,12 +281,12 @@ class Table extends Component {
     })
   }
   handleFindChange(event) {
-    this.setState({searchQuery: event.target.value});
+    this.setState({ searchQuery: event.target.value });
   }
   findQuery() {
     console.log(this.state.searchQuery);
     // console.log(typeof JSON.parse(this.state.searchQuery));
-    if(this.IsJsonString(this.state.searchQuery)){
+    if (this.IsJsonString(this.state.searchQuery)) {
       console.log(JSON.parse(this.state.searchQuery));
 
       let newFileBody = {
@@ -303,7 +306,7 @@ class Table extends Component {
             searchQuery: this.state.searchQuery,
             activePage: 1,
             active100: 1,
-            fileLines : res.data.length
+            fileLines: res.data.length
           });
           this.loadingRef.current.style.display = "none";
         })
@@ -316,16 +319,16 @@ class Table extends Component {
     }
   }
   enterPress(e) {
-    if(e.keyCode === 13) {
+    if (e.keyCode === 13) {
       // console.log(e.target.value);
       this.findQuery();
     }
   }
   IsJsonString(str) {
     try {
-        JSON.parse(str);
+      JSON.parse(str);
     } catch (e) {
-        return false;
+      return false;
     }
     return true;
   }
@@ -342,29 +345,30 @@ class Table extends Component {
     this.loadingRef.current.style.display = "block";
     axios.post('/filedataoffset', newFileBody)
       .then((res) => {
-        
+
         //
-        axios.post('/numofrecors', {path: this.state.path})
-        .then((result) => {
-          
-          // this.setState({fileLines: result.data});
-          this.setState({
-            data: res.data,
-            activePage: 1,
-            sortBy: '_id',
-            sorting: 'asc',
-            searchQuery: null,
-            fileLines: result.data,
-            arrayOfObjPropsHeadline: this.state.arrayOfObjProps
-          });
-          this.findRef.current.value = '';
-          this.loadingRef.current.style.display = "none";
-        })
-        .catch((err) => {
-          console.log(err);
-        })
+        axios.post('/numofrecors', { path: this.state.path })
+          .then((result) => {
+
+            // this.setState({fileLines: result.data});
+            this.setState({
+              data: res.data,
+              activePage: 1,
+              active100: 1,
+              sortBy: '_id',
+              sorting: 'asc',
+              searchQuery: null,
+              fileLines: result.data,
+              arrayOfObjPropsHeadline: this.state.arrayOfObjProps
+            });
+            this.findRef.current.value = '';
+            this.loadingRef.current.style.display = "none";
+          })
+          .catch((err) => {
+            console.log(err);
+          })
         //
-        
+
       })
       .catch((err) => {
         console.log(err);
@@ -372,33 +376,33 @@ class Table extends Component {
   }
 
   render() {
-    let styleT = {display: "block"};
-    if(!this.props.showing)
-      styleT = {display: "none"};
+    let styleT = { display: "block" };
+    if (!this.props.showing)
+      styleT = { display: "none" };
 
     const arr = this.state.data;
     const currPage = this.state.activePage;
     const perPage = this.state.perPage;
 
-    const indeOfLast = currPage * perPage - (this.state.active100-1) * 100;
+    const indeOfLast = currPage * perPage - (this.state.active100 - 1) * 100;
     const indexOdfFirst = indeOfLast - perPage;
-    
+    console.log(indexOdfFirst + " " + indeOfLast);
     const subArr = arr.slice(indexOdfFirst, indeOfLast);
     return (
       <div>
-        
+
         <div className="Table" style={styleT} >
           <div ref={this.loadingRef} className="loader"></div>
           <button className="btn btn-primary btn-lg" onClick={this.handleDivClick}>Back</button>
-          <br/>
+          <br />
           <label>
-              Select number of rows: 
+            Select number of rows:
               <select value={this.state.perPage} onChange={this.handlePerPageChange}>
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={25}>25</option>
-              </select>
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={25}>25</option>
+            </select>
           </label>
           <button onClick={this.resetClick} className="btn btn-lg btn-danger reset-btn">Reset</button>
           <div className="form-inline pull-right findIput">
@@ -411,24 +415,24 @@ class Table extends Component {
                 <th onClick={(e) => this.onClickSort(e, i)} key={i}>{e}</th>
               )
             })}</tr>
-            {subArr.map((e) => {
-              return (
-                <ObjElements obj={e} arr={this.state.arrayOfObjProps} key={Math.random().toString(36).substr(2, 9)}/>
-              )
-            })}
+              {subArr.map((e) => {
+                return (
+                  <ObjElements obj={e} arr={this.state.arrayOfObjProps} key={Math.random().toString(36).substr(2, 9)} />
+                )
+              })}
 
             </tbody>
           </table>
           <div className="Pagination">
             <Pagination
-                  activePage={this.state.activePage}
-                  itemsCountPerPage={this.state.perPage}
-                  totalItemsCount={this.state.fileLines}
-                  onChange={this.handlePageChange}
+              activePage={this.state.activePage}
+              itemsCountPerPage={this.state.perPage}
+              totalItemsCount={this.state.fileLines}
+              onChange={this.handlePageChange}
 
             />
           </div>
-          
+
         </div>
       </div>
     );
@@ -439,10 +443,9 @@ Table.propTypes = {
   data: PropTypes.object.isRequired
 }
 
-const mapStateToProps = state => 
-{  
-  return {data: state.data}
+const mapStateToProps = state => {
+  return { data: state.data }
 }
 
 
- export default connect(mapStateToProps, {})(Table);
+export default connect(mapStateToProps, {})(Table);

@@ -10,6 +10,7 @@
     "body-parser": "",
     "circular-json": "",
     "csv-string": "",
+    "event-stream": "^4.0.1",
     "express": "",
     "file-system": "",
     "method-override": "",
