@@ -384,10 +384,15 @@ class Table extends Component {
     const currPage = this.state.activePage;
     const perPage = this.state.perPage;
 
-    const indeOfLast = currPage * perPage - (this.state.active100 - 1) * 100;
-    const indexOdfFirst = indeOfLast - perPage;
-    console.log(indexOdfFirst + " " + indeOfLast);
-    const subArr = arr.slice(indexOdfFirst, indeOfLast);
+    let indeOfLast = currPage * perPage - (this.state.active100 - 1) * 100;
+    let indexOfFirst = indeOfLast - perPage;
+    if(indeOfLast > 100) {
+      indeOfLast -= 100;
+      indexOfFirst -= 100;
+    }
+    
+    console.log(indexOfFirst + " " + indeOfLast);
+    const subArr = arr.slice(indexOfFirst, indeOfLast);
     return (
       <div>
 
