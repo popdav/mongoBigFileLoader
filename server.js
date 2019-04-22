@@ -412,7 +412,7 @@ io.on('connection', (client) => {
             } else {
               linetmp = line;
               lineArr = line.split(new RegExp(delimiter, "g"));
-              // console.log(i-1);
+              console.log(i);
               let newBodyF = {};
               for(let j=0; j<fieldNames2.length; j++){
                 // console.log(fieldNames2[j] + ': ' + lineArr[j]);
