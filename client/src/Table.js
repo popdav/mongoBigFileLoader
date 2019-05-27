@@ -93,9 +93,11 @@ class Table extends Component {
             data: res.data,
           });
 
-          axios.post('/numofrecors', { path: nextProps.data.data.path })
+          axios.post('/numofrecors', { path: newFileBody.path })
             .then((res) => {
-
+              console.log("usao")
+              console.log(newFileBody)
+              console.log(res.data)
               this.setState({ fileLines: res.data });
               this.loadingRef.current.style.display = "none";
             })
@@ -281,6 +283,7 @@ class Table extends Component {
     })
   }
   handleFindChange(event) {
+    console.log(event.target.value)
     this.setState({ searchQuery: event.target.value });
   }
   findQuery() {
@@ -298,21 +301,44 @@ class Table extends Component {
       }
 
       this.loadingRef.current.style.display = "block";
-      axios.post('/filedataoffset', newFileBody)
+      axios.post('/indexed', newFileBody)
         .then((res) => {
-          console.log(res.data);
-          this.setState({
-            data: res.data,
-            searchQuery: this.state.searchQuery,
-            activePage: 1,
-            active100: 1,
-            fileLines: res.data.length
-          });
-          this.loadingRef.current.style.display = "none";
+          
+          if(res.data.index){
+            axios.post('/filedataoffset', newFileBody)
+            .then((res) => {
+              console.log(res.data);
+              this.setState({
+                data: res.data,
+                searchQuery: this.state.searchQuery,
+                activePage: 1,
+                active100: 1
+              });
+              axios.post('/numofrecors', { path: newFileBody.path, searchQuery: newFileBody.searchQuery })
+                .then((res) => {
+                  console.log(res.data)
+                  this.setState({ fileLines: res.data });
+                  this.loadingRef.current.style.display = "none";
+                })
+                .catch((err) => {
+                  console.log(err);
+                })
+              this.loadingRef.current.style.display = "none";
+            })
+            .catch((err) => {
+              console.log(err);
+            })
+          } else {
+            console.log("USAO!")
+            alert("Field isn't indexed!")
+            // this.setState({searchQuery : null})
+            this.loadingRef.current.style.display = "none";
+          }
         })
         .catch((err) => {
-          console.log(err);
+          console.log(err)
         })
+      
 
     } else {
       alert("This isn't JSON object!");

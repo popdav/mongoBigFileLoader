@@ -113,69 +113,6 @@ app.post('/addoff', (req,res) => {
           res.send({file_added: true}).bind(res);
         })
       })
-
-
-  // let readStream = fs.createReadStream(filepath);
-  // let lineReader = readline.createInterface({
-  //   input: readStream
-  // })
-  // lineReader
-  //   .on('line', (line) => {
-  //     readStream.pause();
-  //     if(lineNum == 0){
-  //       delimiter = CSV.detect(line);
-  //       let fd = fs.openSync(filepath, 'r');
-  //       let readBytes = 0;
-  //       let buffr = new Buffer(buffSize);
-  //       let fieldNames = [];
-  //       readBytes = fs.readSync(fd, buffr, 0, buffr.length, 0);
-  //       let lineF = buffr.toString();
-  //       let firstNewLineF = lineF.indexOf("\n");
-  //       lineF = lineF.slice(0, firstNewLineF);
-  //       if(lineF.indexOf('\r') >= 0)
-  //         inc = 2;
-  //       else
-  //         inc = 1;
-  //     } else {
-  //       insertArr.push({_id : offsetInFile});
-  //       if(insertArr.length % 1000 === 0){
-  //         insertPromisArr.push(new Promise((resolve1, reject1) => {
-  //           dbOff.collection(filepath).insertMany(insertArr, (err, result) => {
-  //             let end = Date.now();
-  //             console.log("\x1b[32m","TIME: ",(end - start) / 1000)
-  //             console.log(lineNum-1)
-              
-              
-  //           });
-  //           resolve1();
-  //         }))
-          
-  //         insertArr = [];
-  //       }
-
-  //     }
-  //     offsetInFile += line.length + inc;
-  //     lineNum++;
-  //     readStream.resume();
-  //   })
-  //   .on('close', (e) => {
-  //     if(insertArr.length > 0){
-  //       insertPromisArr.push(new Promise((resolve1, reject1) => {
-  //         dbOff.collection(filepath).insertMany(insertArr)
-  //           .then(() => {
-  //             resolve1();
-  //           })
-  //           .catch((err) => {
-  //             console.log(err);
-  //           })
-  //       }))
-  //     }
-  //     Promise.all(insertPromisArr).then(() => {
-  //       console.log("\x1b[33m", insertPromisArr.length)
-  //       console.log("\x1b[33m", "USAO!");
-  //       res.send({file_added: true}).bind(res);
-  //     })
-  //   })
   
 })
 
@@ -193,94 +130,137 @@ app.post('/filedataoffset', (req, res) => {
   }
   console.log("\x1b[32m", "Options:")
   console.log(options);
+  console.log(req.body)
+  
 
   let br = -1;
   if(req.body.sorting === 'asc')
     br = 1;
 
   let searchQueryKeys = [];
-  if(req.body.searchQuery !== null)
-    searchQueryKeys = Object.keys(req.body.searchQuery);  
-
+  if(req.body.searchQuery !== null){
+    searchQueryKeys = Object.keys(req.body.searchQuery);
+    if(!isNaN(req.body.searchQuery[searchQueryKeys[0]]) && req.body.searchQuery[searchQueryKeys[0]] != ''){ //provera da li je broj
+      req.body.searchQuery[searchQueryKeys[0]] = Number(req.body.searchQuery[searchQueryKeys[0]] );
+    }    
+  }
   if(req.body.sortBy !== null){
     dbOff.collection(fileName).ensureIndex({[req.body.sortBy] : 1});
   }
   let bodyArrFin = [];
-  function findInColl(resol, opt, bodyArr) {
-    dbOff.collection(fileName).find({}).sort({[req.body.sortBy] : br}).limit(100).skip(opt.skip).toArray((err, docs) => {
-      if(err) throw err;
-      if(docs.length == 0){
-        // console.log(docs)
-        // console.log("Uso u kraj!");
-        resol();
-        return false;
-      }
-      
-      //uzimanje podataka iz fajla
-      let fd = fs.openSync(fileName, 'r');
-      let posInFile = 0;
-      let readBytes = 0;
-      let buffr = new Buffer(buffSize);
-      // console.log(docs);
-      //uzimanje polja iz fajla
-      let fieldNames = [];
-      readBytes = fs.readSync(fd, buffr, 0, buffr.length, 0);
-      let lineF = buffr.toString();
-      let firstNewLineF = lineF.indexOf("\n");
-      lineF = lineF.slice(0, firstNewLineF);
-      delimiter = CSV.detect(lineF);//provera za delimiter
-      lineF = lineF.replace(new RegExp('"', "g"), "");
-      fieldNames = lineF.split(new RegExp(delimiter, "g"));
-      console.log("\x1b[32m", "Field names:") 
-      console.log(fieldNames);
-      //
+    
+  let sendPromise = new Promise((resolve, reject) => {
+    if(req.body.searchQuery !== null){
+      dbOff.collection(fileName).findOne({}, (err,doc) => {
+        if(err) throw err;
+        if(doc[searchQueryKeys[0]] !== null && doc[searchQueryKeys[0]] !== undefined){
+          dbOff.collection(fileName).find(req.body.searchQuery).sort({[req.body.sortBy] : br}).limit(100).skip(options.skip).toArray((err, docs) => {
+            if(err) throw err;
+            // bodyArrFin = docs;
+            console.log(req.body.searchQuery)
+            console.log(docs.length)
+            //uzimanje podataka iz fajla
+            let fd = fs.openSync(fileName, 'r');
+            let posInFile = 0;
+            let readBytes = 0;
+            let buffr = new Buffer(buffSize);
+            // console.log(docs);
+            //uzimanje polja iz fajla
+            let fieldNames = [];
+            readBytes = fs.readSync(fd, buffr, 0, buffr.length, 0);
+            let lineF = buffr.toString();
+            let firstNewLineF = lineF.indexOf("\n");
+            lineF = lineF.slice(0, firstNewLineF);
+            delimiter = CSV.detect(lineF);//provera za delimiter
+            lineF = lineF.replace(new RegExp('"', "g"), "");
+            fieldNames = lineF.split(new RegExp(delimiter, "g"));
 
-      //prolazak kroz fajl i pravljenje niza
-      
-      for(let i=0; i < docs.length; i++) {
-        //citanje linija po linija
-        readBytes = fs.readSync(fd, buffr, 0, buffr.length, docs[i]._id);
-        let line = buffr.toString();
-        let firstNewLine = line.indexOf("\n");
-        
-        line = line.slice(0, firstNewLine);
-        
-        line = line.split(new RegExp(delimiter, "g"));
-        // console.log(docs[i]);
-        //parsiranje u JSON objekat
-        let newBodyF = {};
-        for(let j=0; j<fieldNames.length; j++){
-          if(line[j]){
-            newBodyF[fieldNames[j]] = line[j].replace(new RegExp('"', 'g'), ''); // zamena navodnika sa praznim stringom
-            if(!isNaN(newBodyF[fieldNames[j]]) && newBodyF[fieldNames[j]] != ''){ //provera da li je broj
-              newBodyF[fieldNames[j]] = Number(newBodyF[fieldNames[j]]);
+            for(let i=0; i < docs.length; i++) {
+              //citanje linija po linija
+              readBytes = fs.readSync(fd, buffr, 0, buffr.length, docs[i]._id);
+              let line = buffr.toString();
+              let firstNewLine = line.indexOf("\n");
+              
+              line = line.slice(0, firstNewLine);
+              
+              line = line.split(new RegExp(delimiter, "g"));
+              // console.log(docs[i]);
+              //parsiranje u JSON objekat
+              let newBodyF = {};
+              for(let j=0; j<fieldNames.length; j++){
+                if(line[j]){
+                  newBodyF[fieldNames[j]] = line[j].replace(new RegExp('"', 'g'), ''); // zamena navodnika sa praznim stringom
+                  if(!isNaN(newBodyF[fieldNames[j]]) && newBodyF[fieldNames[j]] != ''){ //provera da li je broj
+                    newBodyF[fieldNames[j]] = Number(newBodyF[fieldNames[j]]);
+                  }
+                } else {
+                  newBodyF[fieldNames[j]] = '';
+                }
+              }
+              
+              
+              bodyArrFin.push(newBodyF);
+              
             }
-          } else {
-            newBodyF[fieldNames[j]] = '';
+            
+            resolve();
+          })
+        } 
+
+      })
+    } else {
+      dbOff.collection(fileName).find().sort({[req.body.sortBy] : br}).limit(100).skip(options.skip).toArray((err, docs) => {
+        if(err) throw err;
+        // bodyArrFin = docs;
+
+        //uzimanje podataka iz fajla
+        let fd = fs.openSync(fileName, 'r');
+        let posInFile = 0;
+        let readBytes = 0;
+        let buffr = new Buffer(buffSize);
+        // console.log(docs);
+        //uzimanje polja iz fajla
+        let fieldNames = [];
+        readBytes = fs.readSync(fd, buffr, 0, buffr.length, 0);
+        let lineF = buffr.toString();
+        let firstNewLineF = lineF.indexOf("\n");
+        lineF = lineF.slice(0, firstNewLineF);
+        delimiter = CSV.detect(lineF);//provera za delimiter
+        lineF = lineF.replace(new RegExp('"', "g"), "");
+        fieldNames = lineF.split(new RegExp(delimiter, "g"));
+
+        for(let i=0; i < docs.length; i++) {
+          //citanje linija po linija
+          readBytes = fs.readSync(fd, buffr, 0, buffr.length, docs[i]._id);
+          let line = buffr.toString();
+          let firstNewLine = line.indexOf("\n");
+          
+          line = line.slice(0, firstNewLine);
+          
+          line = line.split(new RegExp(delimiter, "g"));
+          // console.log(docs[i]);
+          //parsiranje u JSON objekat
+          let newBodyF = {};
+          for(let j=0; j<fieldNames.length; j++){
+            if(line[j]){
+              newBodyF[fieldNames[j]] = line[j].replace(new RegExp('"', 'g'), ''); // zamena navodnika sa praznim stringom
+              if(!isNaN(newBodyF[fieldNames[j]]) && newBodyF[fieldNames[j]] != ''){ //provera da li je broj
+                newBodyF[fieldNames[j]] = Number(newBodyF[fieldNames[j]]);
+              }
+            } else {
+              newBodyF[fieldNames[j]] = '';
+            }
           }
+          
+          
+          bodyArrFin.push(newBodyF);
+          
         }
         
-        if(req.body.searchQuery !== null && (newBodyF[searchQueryKeys[0]] + "").includes(req.body.searchQuery[searchQueryKeys[0]]))
-          bodyArr.push(newBodyF);
-        else if(req.body.searchQuery === null)
-          bodyArr.push(newBodyF);
-        
-      }
-      if(bodyArr.length >= 100){
-        resol();
-        return;
-      } else {
-        opt.skip += 100;
-        // console.log(opt);
-        findInColl(resol, opt, bodyArr)
-      }
-      
-      // res.send(bodyArr);
-    })
-  }
-  
-  let sendPromise = new Promise((resolve, reject) => {
-    findInColl(resolve, options, bodyArrFin);
+        resolve();
+      })
+    }
+    
   })
 
   sendPromise.then(() => {
@@ -301,6 +281,25 @@ app.get("/files", (req, res) => {
   });
 })
 
+app.post('/indexed', (req, res) => {
+  const fileName = req.body.path;
+  let searchQueryKeys = [];
+  if(req.body.searchQuery !== null){
+    searchQueryKeys = Object.keys(req.body.searchQuery); 
+  
+    dbOff.collection(fileName).findOne({}, (err,doc) => {
+      if(err) throw err;
+      if(doc[searchQueryKeys[0]] !== null && doc[searchQueryKeys[0]] !== undefined){
+        res.send({index : true})
+      } else {
+        res.send({index : false})
+      }
+    })
+  } else {
+    res.send({index : true})
+  }
+})
+
 app.post("/delete", (req, res) => {
   let collName = req.body.path;
   dbOff.collection(collName).drop((err, delOK) => {
@@ -312,7 +311,7 @@ app.post("/delete", (req, res) => {
 
 app.post("/numofrecors", (req, res) => {
   let collName = req.body.path;
-  dbOff.collection(collName).countDocuments((err, num) => {
+  dbOff.collection(collName).find(req.body.searchQuery).count((err, num) => {
     res.send(num + "");
   })
 })
@@ -548,45 +547,3 @@ io.on('connection', (client) => {
   });
   
 });
-
-app.post('/testread', (req, res) => {
-
-  let fileName = '/home/david/test-data/top10milliondomains.csv';
-
-  let lineNum = 0;
-  let readStream = fs.createReadStream(fileName)
-      .pipe(es.split())
-      .pipe(es.mapSync((line) => {
-        readStream.pause();
-        lineNum += 1;
-        console.log('line ' + lineNum + ' : ' + line);
-        readStream.resume();
-      }))
-      .on('error', (err) =>{
-        console.log('Error: ' + err);
-      })
-      .on('end', () => {
-        console.log('file read!');
-        res.send({read: true});
-      })
-    
-
-  
-  // let readStream = fs.createReadStream(fileName);
-  // let lineReader = readline.createInterface({
-  //   input: readStream
-  // })
-
-  // lineReader
-  //   .on('line', (line) => {
-  //     readStream.pause();
-  //     lineNum += 1;
-  //     console.log('line ' + lineNum + ' : ' + line);
-  //     readStream.resume();
-  //   })
-  //   .on('close', (e) => {
-  //     console.log('file read!');
-  //     res.send({read: true});
-  //   })
-
-})
