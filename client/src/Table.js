@@ -63,7 +63,7 @@ class Table extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.data.data) {
+    if (nextProps.data.data.path !== this.state.path) {
       this.loadingRef.current.style.display = "block";
 
       this.setState({
@@ -124,16 +124,14 @@ class Table extends Component {
 
     let active100data = Math.floor(this.state.perPage * pageNumber / 100) + 1;
 
-    if ((this.state.perPage * pageNumber % 100 !== 0 && Math.floor(this.state.perPage * pageNumber / 100) + 1 !== this.state.active100)
-      || Math.ceil(this.state.fileLines / this.state.perPage) === pageNumber
-      || (pageNumber < this.state.activePage && this.state.perPage * pageNumber % 100 === 0)) {
+    if (pageNumber * this.state.perPage % 100 === 0)
+      active100data -= 1
+
+    if (active100data !== this.state.active100) {
         console.log(this.state.fileLines)
-      if ((Math.ceil(this.state.fileLines / this.state.perPage) === pageNumber /*&& this.state.fileLines % 2 === 0*/)
-        || (pageNumber < this.state.activePage
-          && this.state.perPage * pageNumber % 100 === 0)) {
-        console.log("usao")
-        active100data--;
-      }
+        console.log(Math.ceil(this.state.fileLines / this.state.perPage))
+        console.log(pageNumber)
+      
 
 
       let newFileBody = {
@@ -234,7 +232,7 @@ class Table extends Component {
       activePage: 1,
       sortBy: this.state.arrayOfObjProps[i],
       sorting: sortingtmp,
-      searchQuery: JSON.parse(this.state.searchQuery),
+      searchQuery: null,//JSON.parse(this.state.searchQuery),
       fileLines: this.state.fileLines
     }
     this.loadingRef.current.style.display = "block";
@@ -254,7 +252,7 @@ class Table extends Component {
 
       axios.post('/filedataoffset', body)
         .then((res) => {
-          this.loadingRef.current.style.display = "none";
+          // this.loadingRef.current.style.display = "none";
           console.log(res.data);
           let objPropsArr = [];
           for (let x = 0; x < this.state.arrayOfObjProps.length; x++) {
@@ -273,8 +271,22 @@ class Table extends Component {
             active100: 1,
             sorting: tmpSort,
             list_sorting: lsort,
-            arrayOfObjPropsHeadline: objPropsArr
+            arrayOfObjPropsHeadline: objPropsArr,
+            searchQuery: null,
+
           });
+          axios.post('/numofrecors', { path: newFileBody.path })
+          .then((res) => {
+            console.log(res.data)
+            this.setState({ fileLines: res.data });
+            this.loadingRef.current.style.display = "none";
+          })
+          .catch((err) => {
+            console.log(err);
+          })
+          
+          this.loadingRef.current.style.display = "none";
+              
           return;
         })
         .catch((err) => {
@@ -415,6 +427,10 @@ class Table extends Component {
     if(indeOfLast > 100) {
       indeOfLast -= 100;
       indexOfFirst -= 100;
+    }
+    if(indexOfFirst < 0){
+      indeOfLast += 100;
+      indexOfFirst += 100;
     }
     
     console.log(indexOfFirst + " " + indeOfLast);
