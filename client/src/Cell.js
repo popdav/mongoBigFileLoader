@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import './App.css';
+
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
 import axios from 'axios';
 import { connect } from 'react-redux';
 import { cellToTableTransfer } from './actions/cellTableActions';
@@ -76,17 +77,14 @@ class Cell extends Component {
 
 
   render() {
-    let styleT = {display: "block"};
-    if(!this.props.showing)
-      styleT = {display: "none"};
 
     return (
-      <tbody>
-        <tr style={styleT}>
+      
+        <tr >
           <td onClick={this.onCellClick}>{this.state.element}</td>
           <td> <input type="submit" value="Delete" className={'btn btnSubmit'} onClick={this.delClick}/></td>
         </tr>
-      </tbody>
+      
     );
   }
 }

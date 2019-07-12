@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import './App.css';
+
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
 import Cell from './Cell';
 import Pagination from "react-js-pagination";
 import axios from 'axios';
@@ -20,6 +21,7 @@ class Files extends Component {
     this.handelAddFormInput = this.handelAddFormInput.bind(this);
     this.refrFiles = this.refrFiles.bind(this);
     this.handleAddClick = this.handleAddClick.bind(this);
+    this.handleCloseClick = this.handleCloseClick.bind(this);
     this.loadingRef = React.createRef();
     this.addForm = React.createRef();
     this.inputAddForm = React.createRef();
@@ -102,49 +104,53 @@ class Files extends Component {
 
   handleAddClick () {
     this.addForm.current.style.display = "block";
-    console.log(this.state)
   }
+
+  handleCloseClick () {
+    this.addForm.current.style.display = "none";
+  }
+
   render() {
-    let styleT = {display: "block"};
+    let styleT = {};
     if(!this.props.showing)
       styleT = {display: "none"};
-
-    
-    
-    
 
     function handleOutForm () {
       // addForm.current.style.display = "none";
     }
 
-
     return (
       <div style={styleT} className="FilesTable">
 
         <button onClick={this.handleAddClick} className={'btn btnSubmit'}>Add file</button>
-
+        <br/>
         <div className={'modal'} ref={this.addForm} onClick={handleOutForm}>
             <form className={'modal-content'}>
-              <div className={"form-group"}>
-                <label>
-                  File path: <input type="text" className={"form-control"} ref={this.inputAddForm} name="addFile" onChange={this.handelAddFormInput}/>
-                </label>
-              </div>
+              <span onClick={this.handleCloseClick}  className="close">&times;</span>
+              <label> File path: </label>
+              <br/>
+              <input type="text" className={"from-control"} ref={this.inputAddForm} name="addFile" onChange={this.handelAddFormInput}/>
+              <br/>
               <input type="submit" value="Submit" className={'btn btn-danger btnSubmit'} onClick={this.addToDb}/>
+
             </form>
         </div>
 
 
         <div ref={this.loadingRef} className="loader"></div>
-        <table className=" table-hover " style={styleT}>
-          <tbody><tr><th>Files:</th></tr></tbody>
-          {
-            this.state.files.map((elm) => {
-              return (
-                <Cell key={Math.random().toString(36).substr(2, 9)} elm={elm} showing={this.props.showing} func={this.refrFiles} showFunc={this.state.showFunc}/>
-              );
-            })
-          }
+        <br/>
+        <table className="table-style table-bordered table-hover TableFile" style={styleT}>
+          <tbody>
+           <tr><th colSpan="2">Files:</th></tr>
+            {
+              this.state.files.map((elm, i) => {
+                return (
+                  <Cell key={Math.random().toString(36).substr(2, 9)} elm={elm} showing={this.props.showing} func={this.refrFiles} showFunc={this.state.showFunc}/>
+                );
+              })
+            } 
+
+          </tbody>
         </table>
 
         <div className="FilesPaginaion">

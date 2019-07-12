@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import './App.css';
+
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
 import Pagination from "react-js-pagination";
 import ObjElements from './ObjElements';
 import axios from 'axios';
@@ -275,15 +276,15 @@ class Table extends Component {
             searchQuery: null,
 
           });
-          axios.post('/numofrecors', { path: newFileBody.path })
-          .then((res) => {
-            console.log(res.data)
-            this.setState({ fileLines: res.data });
-            this.loadingRef.current.style.display = "none";
-          })
-          .catch((err) => {
-            console.log(err);
-          })
+          // axios.post('/numofrecors', { path: newFileBody.path })
+          // .then((res) => {
+          //   console.log(res.data)
+          //   this.setState({ fileLines: res.data });
+          //   this.loadingRef.current.style.display = "none";
+          // })
+          // .catch((err) => {
+          //   console.log(err);
+          // })
           
           this.loadingRef.current.style.display = "none";
               
@@ -414,7 +415,7 @@ class Table extends Component {
   }
 
   render() {
-    let styleT = { display: "block" };
+    let styleT = {  };
     if (!this.props.showing)
       styleT = { display: "none" };
 
@@ -440,7 +441,7 @@ class Table extends Component {
 
         <div className="Table" style={styleT} >
           <div ref={this.loadingRef} className="loader"></div>
-          <button className="btn btn-primary btn-lg" onClick={this.handleDivClick}>Back</button>
+          <button className="btn btn-primary back-btn" onClick={this.handleDivClick}>Home</button>
           <br />
           <label>
             Select number of rows:
@@ -451,12 +452,17 @@ class Table extends Component {
               <option value={25}>25</option>
             </select>
           </label>
-          <button onClick={this.resetClick} className="btn btn-lg btn-danger reset-btn">Reset</button>
-          <div className="form-inline pull-right findIput">
-            find(<strong><input ref={this.findRef} onChange={this.handleFindChange} onKeyDown={this.enterPress} className="form-control input-font-size" /></strong>)
-            <button onClick={this.findQuery} className="btn btn-lg">Find</button>
+          
+          <br/>
+          <div className="input-group mb-3">
+            <input ref={this.findRef} onChange={this.handleFindChange} onKeyDown={this.enterPress} className="form-control input-font-size" id="inputFind"/>
+            <button onClick={this.findQuery} className="find-btn btn">Find</button>
+            <button onClick={this.resetClick} className="btn btn-primary reset-btn">Reset</button>
           </div>
-          <table className="table table-bordered table-style table-hover">
+            
+          <br/>
+
+          <table className="table table-bordered table-style table-hover TableFile">
             <tbody><tr>{this.state.arrayOfObjPropsHeadline.map((e, i) => {
               return (
                 <th onClick={(e) => this.onClickSort(e, i)} key={i}>{e}</th>

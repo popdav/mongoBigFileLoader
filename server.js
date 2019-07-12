@@ -406,7 +406,8 @@ io.on('connection', (client) => {
             } else {
               linetmp = line;
               lineArr = line.split(new RegExp(delimiter, "g"));
-              console.log(i);
+              
+              
               let newBodyF = {};
               for (let j = 0; j < fieldNames2.length; j++) {
                 // console.log(fieldNames2[j] + ': ' + lineArr[j]);
@@ -423,12 +424,12 @@ io.on('connection', (client) => {
               let newValObj = {};
               newValObj[sortBy] = newBodyF[sortBy];
               const newVal = { $set: newValObj };
-              let end = Date.now();
-              console.log("\x1b[32m", "TIME: ", (end - start) / 1000)
+              
               promiseArr.push(new Promise((resolve1, reject1) => {
                 dbOff.collection(fileName).updateOne({ _id: offsetInFile }, newVal, (err, resu) => {
                   if (err) throw err;
-
+                  let end = Date.now();
+                  console.log("\x1b[32m", "TIME: ", (end - start) / 1000)
                   resolve1();
                 })
               }))
@@ -451,90 +452,6 @@ io.on('connection', (client) => {
 
           })
 
-        //
-
-        // lineReader
-        //   .on('line', (line) => {
-        //     readStream.pause();
-        //     if(i == 0){
-
-        //       delimiter = CSV.detect(line);//provera za delimiter
-        //       line = line.replace(new RegExp('"', "g"), "");
-        //       fieldNames2 = line.split(new RegExp(delimiter, "g"));
-
-        //       let fd = fs.openSync(fileName, 'r');
-        //       let readBytes = 0;
-        //       let buffr = new Buffer(buffSize);
-
-        //       readBytes = fs.readSync(fd, buffr, 0, buffr.length, 0);
-        //       let lineF = buffr.toString();
-        //       let firstNewLineF = lineF.indexOf("\n");
-        //       lineF = lineF.slice(0, firstNewLineF);
-        //       if(lineF.indexOf('\r') >= 0)
-        //         inc = 2;
-        //       else
-        //         inc = 1;
-
-        //     } else {
-        //       linetmp = line;
-        //       lineArr = line.split(new RegExp(delimiter, "g"));
-        //       // console.log(i-1);
-        //       let newBodyF = {};
-        //       for(let j=0; j<fieldNames2.length; j++){
-        //         // console.log(fieldNames2[j] + ': ' + lineArr[j]);
-        //         if( lineArr[j] !== undefined){
-        //           newBodyF[fieldNames2[j]] = lineArr[j].replace(new RegExp('"', 'g'), ''); // zamena navodnika sa praznim stringom
-        //           if(!isNaN(newBodyF[fieldNames2[j]]) && newBodyF[fieldNames2[j]] != ''){ //provera da li je broj
-        //             newBodyF[fieldNames2[j]] = Number(newBodyF[fieldNames2[j]]);
-        //           }
-        //         } else {
-        //           newBodyF[fieldNames2[j]] = '';
-        //         }
-        //       }
-
-        //       let newValObj = {};
-        //       newValObj[sortBy] = newBodyF[sortBy];
-        //       const newVal = { $set: newValObj };
-        //       if(newValObj[sortBy] === ''){
-        //         console.log(offsetInFile)
-        //         console.log(line)
-        //         console.log(newVal)
-        //         console.log(lineArr)
-        //         console.log(linetmp)
-        //         console.log(line.length + inc)
-        //         ind = 1;
-        //       }
-        //       if(ind){
-        //         console.log(offsetInFile)
-        //         console.log(line)
-        //         console.log(newVal)
-        //         console.log(lineArr)
-        //         console.log(linetmp)
-        //         console.log(line.length + inc)
-        //         ind = 0;
-        //       }
-        //       promiseArr.push(new Promise((resolve1, reject1) => {
-        //         dbOff.collection(fileName).updateOne({_id : offsetInFile}, newVal, (err, resu) => {
-        //           if(err) throw err;
-
-        //           resolve1();
-        //         })
-        //       }))
-
-        //     }
-        //     i++;
-        //     offsetInFile += line.length + inc;
-        //     readStream.resume();
-
-        //   })
-        //   .on('close', (e) => {
-        //     Promise.all(promiseArr).then(() => {
-        //       let end = Date.now();
-        //       console.log("\x1b[32m","TIME: ",(end - start) / 1000)
-        //       client.emit('startsort', body);
-        //     })
-        //     console.log('close');
-        //   })
       }
     })
 
