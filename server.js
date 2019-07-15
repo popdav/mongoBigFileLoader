@@ -315,7 +315,6 @@ app.post("/numofrecors", (req, res) => {
 })
 
 app.post("/fileExist", (req, res) => {
-
   if (fs.existsSync(req.body.path)) {
     res.send("1");
     return;
@@ -459,3 +458,5 @@ io.on('connection', (client) => {
   });
 
 });
+
+module.exports = {app,io};
