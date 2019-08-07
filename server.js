@@ -148,6 +148,7 @@ app.post('/filedataoffset', (req, res) => {
   let bodyArrFin = [];
 
   let sendPromise = new Promise((resolve, reject) => {
+    console.log(br)
     if (req.body.searchQuery !== null) {
       dbOff.collection(fileName).findOne({}, (err, doc) => {
         if (err) throw err;

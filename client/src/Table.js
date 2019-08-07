@@ -24,7 +24,7 @@ class Table extends Component {
       showFunc: props.showFunc,
       active100: 1,
       sortBy: '_id',
-      sorting: 'acs',
+      sorting: 'asc',
       list_sorting: 'asc',
       searchQuery: null,
       socket: openSocket('http://localhost:5000'),
@@ -64,7 +64,7 @@ class Table extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.data.data.path !== this.state.path) {
+    if (nextProps.showing) {
       this.loadingRef.current.style.display = "block";
 
       this.setState({
@@ -90,13 +90,13 @@ class Table extends Component {
 
       axios.post('/filedataoffset', newFileBody)
         .then((res) => {
+          console.log(res.data)
           this.setState({
             data: res.data,
           });
 
           axios.post('/numofrecors', { path: newFileBody.path })
             .then((res) => {
-              console.log("usao")
               console.log(newFileBody)
               console.log(res.data)
               this.setState({ fileLines: res.data });
@@ -440,6 +440,7 @@ class Table extends Component {
       <div>
 
         <div className="Table" style={styleT} >
+          <h1>{this.state.path}</h1>
           <div ref={this.loadingRef} className="loader"></div>
           <button className="btn btn-primary back-btn" onClick={this.handleDivClick}>Home</button>
           <br />
