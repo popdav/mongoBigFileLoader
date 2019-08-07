@@ -19,7 +19,7 @@ class Table extends Component {
       showing: props.showing,
       data: [],
       activePage: 1,
-      perPage: 5,
+      perPage: 25,
       fileLines: 0,
       showFunc: props.showFunc,
       active100: 1,
@@ -171,7 +171,7 @@ class Table extends Component {
       path: this.state.path,
       activePage: 1,
       sortBy: this.state.sortBy,
-      sorting: this.state.sorting,
+      sorting: this.state.list_sorting,
       searchQuery: JSON.parse(this.state.searchQuery)
     }
 
@@ -180,6 +180,7 @@ class Table extends Component {
     axios.post('/filedataoffset', newFileBody)
       .then((res) => {
         this.loadingRef.current.style.display = "none";
+        console.log(this.state.sorting)
         console.log(res);
         this.setState({
           data: res.data,
