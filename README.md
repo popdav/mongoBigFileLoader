@@ -1,3 +1,4 @@
 # mongoBigFileLoader
 This app is for loading json files from mongodb and showing them.
-To start the app, go to project folder and type in terminal "yarn dev".
+To start the app you need to `npm install` in root and in clinet.
+Then in client start whole app by typing `yarn dev`.
